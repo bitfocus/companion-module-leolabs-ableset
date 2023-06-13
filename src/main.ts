@@ -197,13 +197,13 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.CanJumpToPreviousSection
 			)
 		})
-		server.on('/setlist/queuedSongSectionName', ([, queuedSong, queuedSection]) => {
+		server.on('/setlist/queuedName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
 				queuedSongName: String(queuedSong),
 				queuedSectionName: String(queuedSection),
 			})
 		})
-		server.on('/setlist/queuedSongSectionIndex', ([, queuedSong, queuedSection]) => {
+		server.on('/setlist/queuedIndex', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
 				queuedSongIndex: Number(queuedSong),
 				queuedSectionIndex: Number(queuedSection),
