@@ -55,6 +55,8 @@ class ModuleInstance extends InstanceBase<Config> {
 	oscServer: Server | null = null
 	oscClient: Client | null = null
 
+	connectInterval: NodeJS.Timeout | null = null
+
 	songs: string[] = []
 	sections: string[] = []
 
@@ -101,13 +103,6 @@ class ModuleInstance extends InstanceBase<Config> {
 				isConnected = false
 			}, 2500)
 
-			this.oscServer.on('listening', () => {
-				this.log('info', `OSC server is listening on port ${clientPort}`)
-				this.sendOsc(['/subscribe', config.clientHost, clientPort, 'Companion'])
-				this.sendOsc(['/getValues'])
-				handleHeartbeat()
-			})
-
 			this.oscServer.once('/global/isPlaying', () => {
 				isConnected = true
 				this.log('info', 'connection established')
@@ -117,7 +112,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.oscServer.on('/heartbeat', () => {
 				if (!isConnected) {
 					isConnected = true
-					this.log('info', 'got another heartbeat, connection re-established')
+					this.log('info', 'Got another heartbeat, connection re-established')
 					this.updateStatus(InstanceStatus.Ok)
 				}
 				handleHeartbeat()
@@ -128,6 +123,28 @@ class ModuleInstance extends InstanceBase<Config> {
 				console.error('OSC Error:', error)
 				this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 			})
+
+			const tryConnecting = () => {
+				this.log('info', 'Trying to connect to AbleSet...')
+				this.sendOsc(['/subscribe', config.clientHost, clientPort, 'Companion'])
+				this.sendOsc(['/getValues'])
+			}
+
+			await new Promise<void>((res) => {
+				this.oscServer!.on('listening', () => {
+					this.log('info', `OSC server is listening on port ${clientPort}`)
+					res()
+				})
+			})
+
+			handleHeartbeat()
+			tryConnecting()
+
+			this.connectInterval = setInterval(() => {
+				if (!isConnected) {
+					tryConnecting()
+				}
+			}, 2000)
 		} catch (e: any) {
 			console.error('OSC Init Error:', e)
 			this.updateStatus(InstanceStatus.ConnectionFailure, String(e.message ?? e))
@@ -297,6 +314,11 @@ class ModuleInstance extends InstanceBase<Config> {
 	async destroy() {
 		this.log('debug', 'destroying module...')
 		this.sendOsc('/unsubscribe')
+
+		if (this.connectInterval) {
+			clearInterval(this.connectInterval)
+		}
+
 		await new Promise<void>((res) => this.oscClient?.close(res))
 		await new Promise<void>((res) => this.oscServer?.close(res))
 		this.log('debug', 'module destroyed')
