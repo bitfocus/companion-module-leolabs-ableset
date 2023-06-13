@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import {
 	InstanceBase,
 	runEntrypoint,
@@ -34,8 +37,9 @@ const makeRange = (number: number) =>
 const COLOR_BLACK = combineRgb(0, 0, 0)
 const COLOR_GRAY = combineRgb(128, 128, 128)
 const COLOR_WHITE = combineRgb(255, 255, 255)
-const COLOR_GREEN = combineRgb(0, 200, 0)
-const COLOR_DARK_GREEN = combineRgb(0, 125, 0)
+const COLOR_GREEN_500 = combineRgb(34, 197, 94)
+const COLOR_GREEN_700 = combineRgb(21, 128, 61)
+const COLOR_GREEN_800 = combineRgb(22, 101, 52)
 
 const PRESET_COUNT = 32
 
@@ -47,8 +51,25 @@ class ModuleInstance extends InstanceBase<Config> {
 	songs: string[] = []
 	sections: string[] = []
 
+	playIcon: string
+	pauseIconGreen: string
+	stopIcon: string
+	stopIconGreen: string
+	loopIcon: string
+	loopIconGray: string
+	loopIconGreen: string
+
 	constructor(internal: any) {
 		super(internal)
+
+		const iconDir = join(__dirname, '..', 'icons')
+		this.playIcon = readFileSync(join(iconDir, 'play.png'), 'base64')
+		this.pauseIconGreen = readFileSync(join(iconDir, 'pause-green.png'), 'base64')
+		this.stopIcon = readFileSync(join(iconDir, 'stop.png'), 'base64')
+		this.stopIconGreen = readFileSync(join(iconDir, 'stop-green.png'), 'base64')
+		this.loopIcon = readFileSync(join(iconDir, 'loop.png'), 'base64')
+		this.loopIconGray = readFileSync(join(iconDir, 'loop-gray.png'), 'base64')
+		this.loopIconGreen = readFileSync(join(iconDir, 'loop-green.png'), 'base64')
 	}
 
 	async init(config: Config) {
@@ -692,7 +713,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsPlaying]: {
 				type: 'boolean',
 				name: 'Playing',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => {
 					return Boolean(this.getVariableValue('isPlaying'))
 				},
@@ -702,7 +723,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsInLoop]: {
 				type: 'boolean',
 				name: 'Is in Loop',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => {
 					const pos = Number(this.getVariableValue('beatsPosition'))
 					return pos >= Number(this.getVariableValue('loopStart')) && pos <= Number(this.getVariableValue('loopEnd'))
@@ -713,7 +734,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsInActiveLoop]: {
 				type: 'boolean',
 				name: 'Is in Active Loop',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => this.isInActiveLoop(),
 				options: [],
 			},
@@ -721,7 +742,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsCurrentSong]: {
 				type: 'boolean',
 				name: 'Is Current Song',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
 					return Number(this.getVariableValue('activeSongIndex')) === Number(feedback.options.songNumber) - 1
 				},
@@ -740,7 +761,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsCurrentSection]: {
 				type: 'boolean',
 				name: 'Is Current Section',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
 					return Number(this.getVariableValue('activeSectionIndex')) === Number(feedback.options.sectionNumber) - 1
 				},
@@ -759,7 +780,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsQueuedSong]: {
 				type: 'boolean',
 				name: 'Is Queued Song',
-				defaultStyle: { bgcolor: COLOR_DARK_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
 					return (
 						this.getVariableValue('queuedSongIndex') !== '' &&
@@ -781,7 +802,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.IsQueuedSection]: {
 				type: 'boolean',
 				name: 'Is Queued Section',
-				defaultStyle: { bgcolor: COLOR_DARK_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
 					return (
 						this.getVariableValue('queuedSectionIndex') !== '' &&
@@ -803,7 +824,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToNextSong]: {
 				type: 'boolean',
 				name: 'Can Jump to Next Song',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => {
 					return Number(this.getVariableValue('activeSongIndex')) < this.songs.length - 1
 				},
@@ -813,7 +834,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToPreviousSong]: {
 				type: 'boolean',
 				name: 'Can Jump to Previous Song',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => {
 					return Number(this.getVariableValue('activeSongIndex')) > 0
 				},
@@ -823,7 +844,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToNextSection]: {
 				type: 'boolean',
 				name: 'Can Jump to Next Section',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => {
 					return Number(this.getVariableValue('activeSectionIndex')) < this.sections.length - 1
 				},
@@ -833,7 +854,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToPreviousSection]: {
 				type: 'boolean',
 				name: 'Can Jump to Previous Section',
-				defaultStyle: { bgcolor: COLOR_GREEN },
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: () => {
 					return Number(this.getVariableValue('activeSectionIndex')) > 0
 				},
@@ -856,8 +877,16 @@ class ModuleInstance extends InstanceBase<Config> {
 					style: { ...defaultSongStyle, text: `$(AbleSet:song${i + 1}Name)` },
 					steps: [{ down: [{ actionId: Action.JumpToSongByNumber, options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
-						{ feedbackId: Feedback.IsQueuedSong, options: { songNumber: i + 1 }, style: { bgcolor: COLOR_DARK_GREEN } },
-						{ feedbackId: Feedback.IsCurrentSong, options: { songNumber: i + 1 }, style: { bgcolor: COLOR_GREEN } },
+						{
+							feedbackId: Feedback.IsQueuedSong,
+							options: { songNumber: i + 1 },
+							style: { bgcolor: COLOR_GREEN_800 },
+						},
+						{
+							feedbackId: Feedback.IsCurrentSong,
+							options: { songNumber: i + 1 },
+							style: { bgcolor: COLOR_GREEN_500 },
+						},
 					],
 				} as CompanionButtonPresetDefinition,
 			])
@@ -876,12 +905,12 @@ class ModuleInstance extends InstanceBase<Config> {
 						{
 							feedbackId: Feedback.IsQueuedSection,
 							options: { sectionNumber: i + 1 },
-							style: { bgcolor: COLOR_DARK_GREEN },
+							style: { bgcolor: COLOR_GREEN_800 },
 						},
 						{
 							feedbackId: Feedback.IsCurrentSection,
 							options: { sectionNumber: i + 1 },
-							style: { bgcolor: COLOR_GREEN },
+							style: { bgcolor: COLOR_GREEN_500 },
 						},
 					],
 				} as CompanionButtonPresetDefinition,
@@ -893,17 +922,29 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Playback',
 				name: 'Toggle Play/Pause',
 				type: 'button',
-				style: { ...defaultStyle, text: 'Play' },
+				style: { ...defaultStyle, text: '', png64: this.playIcon },
 				steps: [{ down: [{ actionId: Action.PlayPause, options: {} }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN, text: 'Pause' } }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsPlaying,
+						options: {},
+						style: { bgcolor: COLOR_GREEN_700, png64: this.pauseIconGreen },
+					},
+				],
 			},
 			playStop: {
 				category: 'Playback',
 				name: 'Toggle Play/Stop',
 				type: 'button',
-				style: { ...defaultStyle, text: 'Play' },
+				style: { ...defaultStyle, text: '', png64: this.playIcon },
 				steps: [{ down: [{ actionId: Action.PlayStop, options: {} }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN, text: 'Stop' } }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsPlaying,
+						options: {},
+						style: { bgcolor: COLOR_GREEN_700, png64: this.stopIconGreen },
+					},
+				],
 			},
 			prevSong: {
 				category: 'Playback',
@@ -941,11 +982,15 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Playback',
 				name: 'Toggle Loop',
 				type: 'button',
-				style: { ...defaultStyle, color: COLOR_GRAY, text: 'Loop' },
+				style: { ...defaultStyle, color: COLOR_GRAY, text: '', png64: this.loopIconGray },
 				steps: [{ down: [{ actionId: Action.ToggleLoop, options: {} }], up: [] }],
 				feedbacks: [
-					{ feedbackId: Feedback.IsInLoop, options: {}, style: { color: COLOR_WHITE } },
-					{ feedbackId: Feedback.IsInActiveLoop, options: {}, style: { bgcolor: COLOR_GREEN } },
+					{ feedbackId: Feedback.IsInLoop, options: {}, style: { png64: this.loopIcon } },
+					{
+						feedbackId: Feedback.IsInActiveLoop,
+						options: {},
+						style: { bgcolor: COLOR_GREEN_700, png64: this.loopIconGreen },
+					},
 				],
 			},
 		}
