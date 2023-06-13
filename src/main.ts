@@ -98,14 +98,14 @@ class ModuleInstance extends InstanceBase<Config> {
 			let isConnected = false
 
 			const handleHeartbeat = debounce(() => {
-				this.log('warn', 'took too long between heartbeats, connection likely lost')
+				this.log('warn', 'Took too long between heartbeats, connection likely lost')
 				this.updateStatus(InstanceStatus.Disconnected, "Didn't receive a heartbeat in a while")
 				isConnected = false
 			}, 2500)
 
 			this.oscServer.once('/global/isPlaying', () => {
 				isConnected = true
-				this.log('info', 'connection established')
+				this.log('info', 'Connection established')
 				this.updateStatus(InstanceStatus.Ok)
 			})
 
@@ -349,7 +349,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				id: 'clientPort',
 				type: 'textinput',
 				label: 'Client Port',
-				tooltip: 'The port used to listen to status updates. Only change this if the default port causes issues',
+				tooltip: 'The port used to listen to status updates. Only change this if the default port causes issues.',
 				regex: Regex.PORT,
 				default: '39052',
 				width: 4,
@@ -359,7 +359,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'textinput',
 				label: 'Server Host/IP',
 				tooltip:
-					'The host to connect to. Leave this as 127.0.0.1 is AbleSet is running on the same computer as Companion.',
+					'The host to connect to. Leave this as 127.0.0.1 if AbleSet is running on the same computer as Companion.',
 				regex: Regex.HOSTNAME,
 				default: '127.0.0.1',
 				width: 4,
