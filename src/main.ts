@@ -9,9 +9,8 @@ import {
 	Regex,
 } from '@companion-module/base'
 
-import debounce from 'lodash.debounce'
-
 import { Client, Server, Message, MessageLike } from 'node-osc'
+import { debounce, debounceGather } from './utils/debounce'
 
 interface Config {
 	/** The host registered in AbleSet for updates */
@@ -133,11 +132,14 @@ class ModuleInstance extends InstanceBase<Config> {
 		}
 	}
 
+	/** Waits until all new OSC values are received before running updates */
+	debouncedCheckFeedbacks = debounceGather((types: string[]) => this.checkFeedbacks(...types), 50)
+
 	initOscListeners(server: Server) {
 		//#region global
 		server.on('/global/beatsPosition', ([, beats]) => {
 			this.setVariableValues({ beatsPosition: Number(beats) })
-			this.checkFeedbacks('isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks('isInLoop', 'isInActiveLoop')
 		})
 		server.on('/global/humanPosition', ([, bars, beats]) => {
 			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}` })
@@ -147,7 +149,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/global/isPlaying', ([, isPlaying]) => {
 			this.setVariableValues({ isPlaying: Boolean(isPlaying) })
-			this.checkFeedbacks('isPlaying')
+			this.debouncedCheckFeedbacks('isPlaying')
 		})
 		server.on('/global/timeSignature', ([, numerator, denominator]) => {
 			this.setVariableValues({ timeSignature: `${numerator}/${denominator}` })
@@ -163,28 +165,28 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.setVariableValues(
 				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')]))
 			)
-			this.checkFeedbacks('canJumpToNextSong', 'canJumpToPreviousSong')
+			this.debouncedCheckFeedbacks('canJumpToNextSong', 'canJumpToPreviousSong')
 		})
 		server.on('/setlist/sections', ([, ...sections]) => {
 			this.sections = sections as string[]
 			this.setVariableValues(
 				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]))
 			)
-			this.checkFeedbacks('canJumpToNextSection', 'canJumpToPreviousSection')
+			this.debouncedCheckFeedbacks('canJumpToNextSection', 'canJumpToPreviousSection')
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {
 			this.setVariableValues({ activeSongName: String(activeSongName) })
 		})
 		server.on('/setlist/activeSongIndex', ([, activeSongIndex]) => {
 			this.setVariableValues({ activeSongIndex: Number(activeSongIndex) })
-			this.checkFeedbacks('isCurrentSong', 'canJumpToNextSong', 'canJumpToPreviousSong')
+			this.debouncedCheckFeedbacks('isCurrentSong', 'canJumpToNextSong', 'canJumpToPreviousSong')
 		})
 		server.on('/setlist/activeSectionName', ([, activeSectionName]) => {
 			this.setVariableValues({ activeSectionName: String(activeSectionName) })
 		})
 		server.on('/setlist/activeSectionIndex', ([, activeSectionIndex]) => {
 			this.setVariableValues({ activeSectionIndex: Number(activeSectionIndex) })
-			this.checkFeedbacks('isCurrentSection', 'canJumpToNextSection', 'canJumpToPreviousSection')
+			this.debouncedCheckFeedbacks('isCurrentSection', 'canJumpToNextSection', 'canJumpToPreviousSection')
 		})
 		server.on('/setlist/queuedSongSectionName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
@@ -197,7 +199,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				queuedSongIndex: Number(queuedSong),
 				queuedSectionIndex: Number(queuedSection),
 			})
-			this.checkFeedbacks('isQueuedSong', 'isQueuedSection')
+			this.debouncedCheckFeedbacks('isQueuedSong', 'isQueuedSection')
 		})
 		server.on('/setlist/nextSongName', ([, nextSongName]) => {
 			this.setVariableValues({ nextSongName: String(nextSongName) })
@@ -207,15 +209,15 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/setlist/loopEnabled', ([, loopEnabled]) => {
 			this.setVariableValues({ loopEnabled: Boolean(loopEnabled) })
-			this.checkFeedbacks('loopEnabled', 'isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks('loopEnabled', 'isInLoop', 'isInActiveLoop')
 		})
 		server.on('/setlist/loopStart', ([, loopStart]) => {
 			this.setVariableValues({ loopStart: Number(loopStart) })
-			this.checkFeedbacks('isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks('isInLoop', 'isInActiveLoop')
 		})
 		server.on('/setlist/loopEnd', ([, loopEnd]) => {
 			this.setVariableValues({ loopEnd: Number(loopEnd) })
-			this.checkFeedbacks('isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks('isInLoop', 'isInActiveLoop')
 		})
 		server.on('/setlist/isCountingIn', ([, isCountingIn]) => {
 			this.setVariableValues({ isCountingIn: Boolean(isCountingIn) })

@@ -1,7 +1,7 @@
 {
 	"name": "companion-module-leolabs-ableset",
 	"version": "1.0.0",
-	"main": "main.js",
+	"main": "dist/main.js",
 	"scripts": {
 		"format": "prettier -w .",
 		"build": "tsc"
@@ -13,12 +13,10 @@
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.4.0",
-		"lodash.debounce": "^4.0.8",
 		"node-osc": "^8.0.11"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^1.2.0",
-		"@types/lodash.debounce": "^4.0.7",
 		"@types/node-osc": "^6.0.1",
 		"prettier": "^2.8.8",
 		"typescript": "^5.1.3"
