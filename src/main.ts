@@ -874,6 +874,7 @@ class ModuleInstance extends InstanceBase<Config> {
 					category: 'Songs',
 					name: `Song ${i + 1}`,
 					type: 'button',
+					previewStyle: { ...defaultSongStyle, text: `Song ${i + 1}` },
 					style: { ...defaultSongStyle, text: `$(AbleSet:song${i + 1}Name)` },
 					steps: [{ down: [{ actionId: Action.JumpToSongByNumber, options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
@@ -899,6 +900,7 @@ class ModuleInstance extends InstanceBase<Config> {
 					category: 'Sections',
 					name: `Section ${i + 1}`,
 					type: 'button',
+					previewStyle: { ...defaultSongStyle, text: `Section ${i + 1}` },
 					style: { ...defaultSongStyle, text: `$(AbleSet:section${i + 1}Name)` },
 					steps: [{ down: [{ actionId: Action.JumpToSectionByNumber, options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
