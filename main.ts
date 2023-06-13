@@ -274,7 +274,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	// When module gets deleted
 	async destroy() {
 		this.log('debug', 'destroying module...')
-		this.oscClient?.send('/unsubscribe')
+		this.sendOsc('/unsubscribe')
 		await new Promise<void>((res) => this.oscClient?.close(res))
 		await new Promise<void>((res) => this.oscServer?.close(res))
 		this.log('debug', 'module destroyed')
@@ -821,7 +821,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Is Queued Song',
 				defaultStyle: { bgcolor: COLOR_DARK_GREEN },
 				callback: (feedback) => {
-					return Number(this.getVariableValue('queuedSongIndex')) === Number(feedback.options.songNumber) - 1
+					return (
+						this.getVariableValue('queuedSongIndex') !== '' &&
+						Number(this.getVariableValue('queuedSongIndex')) === Number(feedback.options.songNumber) - 1
+					)
 				},
 				options: [
 					{
@@ -840,7 +843,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Is Queued Section',
 				defaultStyle: { bgcolor: COLOR_DARK_GREEN },
 				callback: (feedback) => {
-					return Number(this.getVariableValue('queuedSectionIndex')) === Number(feedback.options.sectionNumber) - 1
+					return (
+						this.getVariableValue('queuedSectionIndex') !== '' &&
+						Number(this.getVariableValue('queuedSectionIndex')) === Number(feedback.options.sectionNumber) - 1
+					)
 				},
 				options: [
 					{
