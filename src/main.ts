@@ -41,6 +41,13 @@ const COLOR_GREEN_500 = combineRgb(34, 197, 94)
 const COLOR_GREEN_700 = combineRgb(21, 128, 61)
 const COLOR_GREEN_800 = combineRgb(22, 101, 52)
 
+const PLAY_ICON = '<icon:play.png>'
+const PAUSE_ICON_GREEN = '<icon:pause-green.png>'
+const STOP_ICON_GREEN = '<icon:stop-green.png>'
+const LOOP_ICON = '<icon:loop.png>'
+const LOOP_ICON_GRAY = '<icon:loop-gray.png>'
+const LOOP_ICON_GREEN = '<icon:loop-green.png>'
+
 const PRESET_COUNT = 32
 
 class ModuleInstance extends InstanceBase<Config> {
@@ -51,25 +58,8 @@ class ModuleInstance extends InstanceBase<Config> {
 	songs: string[] = []
 	sections: string[] = []
 
-	playIcon: string
-	pauseIconGreen: string
-	stopIcon: string
-	stopIconGreen: string
-	loopIcon: string
-	loopIconGray: string
-	loopIconGreen: string
-
 	constructor(internal: any) {
 		super(internal)
-
-		const iconDir = join(__dirname, '..', 'icons')
-		this.playIcon = readFileSync(join(iconDir, 'play.png'), 'base64')
-		this.pauseIconGreen = readFileSync(join(iconDir, 'pause-green.png'), 'base64')
-		this.stopIcon = readFileSync(join(iconDir, 'stop.png'), 'base64')
-		this.stopIconGreen = readFileSync(join(iconDir, 'stop-green.png'), 'base64')
-		this.loopIcon = readFileSync(join(iconDir, 'loop.png'), 'base64')
-		this.loopIconGray = readFileSync(join(iconDir, 'loop-gray.png'), 'base64')
-		this.loopIconGreen = readFileSync(join(iconDir, 'loop-green.png'), 'base64')
 	}
 
 	async init(config: Config) {
@@ -924,13 +914,13 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Playback',
 				name: 'Toggle Play/Pause',
 				type: 'button',
-				style: { ...defaultStyle, text: '', png64: this.playIcon },
+				style: { ...defaultStyle, text: '', png64: PLAY_ICON },
 				steps: [{ down: [{ actionId: Action.PlayPause, options: {} }], up: [] }],
 				feedbacks: [
 					{
 						feedbackId: Feedback.IsPlaying,
 						options: {},
-						style: { bgcolor: COLOR_GREEN_700, png64: this.pauseIconGreen },
+						style: { bgcolor: COLOR_GREEN_700, png64: PAUSE_ICON_GREEN },
 					},
 				],
 			},
@@ -938,13 +928,13 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Playback',
 				name: 'Toggle Play/Stop',
 				type: 'button',
-				style: { ...defaultStyle, text: '', png64: this.playIcon },
+				style: { ...defaultStyle, text: '', png64: PLAY_ICON },
 				steps: [{ down: [{ actionId: Action.PlayStop, options: {} }], up: [] }],
 				feedbacks: [
 					{
 						feedbackId: Feedback.IsPlaying,
 						options: {},
-						style: { bgcolor: COLOR_GREEN_700, png64: this.stopIconGreen },
+						style: { bgcolor: COLOR_GREEN_700, png64: STOP_ICON_GREEN },
 					},
 				],
 			},
@@ -984,14 +974,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Playback',
 				name: 'Toggle Loop',
 				type: 'button',
-				style: { ...defaultStyle, color: COLOR_GRAY, text: '', png64: this.loopIconGray },
+				style: { ...defaultStyle, color: COLOR_GRAY, text: '', png64: LOOP_ICON_GRAY },
 				steps: [{ down: [{ actionId: Action.ToggleLoop, options: {} }], up: [] }],
 				feedbacks: [
-					{ feedbackId: Feedback.IsInLoop, options: {}, style: { png64: this.loopIcon } },
+					{ feedbackId: Feedback.IsInLoop, options: {}, style: { png64: LOOP_ICON } },
 					{
 						feedbackId: Feedback.IsInActiveLoop,
 						options: {},
-						style: { bgcolor: COLOR_GREEN_700, png64: this.loopIconGreen },
+						style: { bgcolor: COLOR_GREEN_700, png64: LOOP_ICON_GREEN },
 					},
 				],
 			},
