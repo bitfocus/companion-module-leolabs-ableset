@@ -22,6 +22,10 @@ interface Config {
 	serverHost: string
 }
 
+/**
+ * Returns an array of numbers from 0 to, and including the given number.
+ * @example makeRange(2) // returns [0, 1, 2]
+ */
 const makeRange = (number: number) =>
 	Array(number)
 		.fill(0)
@@ -889,17 +893,17 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Playback',
 				name: 'Toggle Play/Pause',
 				type: 'button',
-				style: { ...defaultStyle, text: 'Play\nPause' },
+				style: { ...defaultStyle, text: 'Play' },
 				steps: [{ down: [{ actionId: Action.PlayPause, options: {} }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN } }],
+				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN, text: 'Pause' } }],
 			},
 			playStop: {
 				category: 'Playback',
 				name: 'Toggle Play/Stop',
 				type: 'button',
-				style: { ...defaultStyle, text: 'Play\nStop' },
+				style: { ...defaultStyle, text: 'Play' },
 				steps: [{ down: [{ actionId: Action.PlayStop, options: {} }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN } }],
+				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN, text: 'Stop' } }],
 			},
 			prevSong: {
 				category: 'Playback',
