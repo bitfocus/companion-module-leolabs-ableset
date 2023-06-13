@@ -11,6 +11,7 @@ import {
 
 import { Client, Server, Message, MessageLike } from 'node-osc'
 import { debounce, debounceGather } from './utils/debounce'
+import { Action, Feedback } from './enums'
 
 interface Config {
 	/** The host registered in AbleSet for updates */
@@ -19,51 +20,6 @@ interface Config {
 	clientPort: string
 	/** The hostname or IP address to connect to  */
 	serverHost: string
-}
-
-/** Available feedbacks */
-const enum Feedback {
-	IsPlaying = 'isPlaying',
-	IsInLoop = 'isInLoop',
-	IsInActiveLoop = 'isInActiveLoop',
-	IsCurrentSong = 'isCurrentSong',
-	IsCurrentSection = 'isCurrentSection',
-	IsQueuedSong = 'isQueuedSong',
-	IsQueuedSection = 'isQueuedSection',
-	CanJumpToNextSong = 'canJumpToNextSong',
-	CanJumpToPreviousSong = 'canJumpToPreviousSong',
-	CanJumpToNextSection = 'canJumpToNextSection',
-	CanJumpToPreviousSection = 'canJumpToPreviousSection',
-}
-
-/** Available actions */
-const enum Action {
-	Play = 'play',
-	Pause = 'pause',
-	Stop = 'stop',
-	PlayPause = 'playPause',
-	PlayStop = 'playStop',
-	EnableLoop = 'enableLoop',
-	EscapeLoop = 'escapeLoop',
-	ToggleLoop = 'toggleLoop',
-	JumpToSongByNumber = 'jumpToSongByNumber',
-	JumpToSongByName = 'jumpToSongByName',
-	JumpBySongs = 'jumpBySongs',
-	JumpToSectionByNumber = 'jumpToSectionByNumber',
-	JumpToSectionByName = 'jumpToSectionByName',
-	JumpBySections = 'jumpBySections',
-	PlayCuedSong = 'playCuedSong',
-	Pa12SetScene = 'pa12SetScene',
-	Pa12ToggleScene = 'pa12ToggleScene',
-	SetAutoplay = 'setAutoplay',
-	SetSafeMode = 'setSafeMode',
-	SetAlwaysStopOnSongEnd = 'setAlwaysStopOnSongEnd',
-	SetAutoJumpToNextSong = 'setAutoJumpToNextSong',
-	SetAutoLoopCurrentSection = 'setAutoLoopCurrentSection',
-	SetCountIn = 'setCountIn',
-	SetCountInSoloClick = 'setCountInSoloClick',
-	SetCountInDuration = 'setCountInDuration',
-	SetJumpMode = 'setJumpMode',
 }
 
 const makeRange = (number: number) =>
