@@ -11,7 +11,7 @@ import {
 
 import debounce from 'lodash.debounce'
 
-import { Client, Server } from 'node-osc'
+import { Client, Server, Message, MessageLike } from 'node-osc'
 
 interface Config {
 	/** The host registered in AbleSet for updates */
@@ -88,8 +88,8 @@ class ModuleInstance extends InstanceBase<Config> {
 
 			this.oscServer.on('listening', () => {
 				this.log('info', `OSC server is listening on port ${clientPort}`)
-				this.oscClient?.send(['/subscribe', '127.0.0.1', clientPort, 'Companion'])
-				this.oscClient?.send(['/getValues'])
+				this.sendOsc(['/subscribe', config.clientHost, clientPort, 'Companion'])
+				this.sendOsc(['/getValues'])
 				handleHeartbeat()
 			})
 
@@ -122,6 +122,15 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.updatePresets() // export presets
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
+	}
+
+	sendOsc(message: string | Message | MessageLike) {
+		if (this.oscClient) {
+			this.log('info', 'sending message: ' + JSON.stringify(message))
+			this.oscClient.send(message)
+		} else {
+			this.log('error', "OSC client doesn't exist")
+		}
 	}
 
 	initOscListeners(server: Server) {
@@ -322,7 +331,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => {
 					console.log('Play')
-					this.oscClient?.send(['/global/play'])
+					this.sendOsc(['/global/play'])
 				},
 			},
 			pause: {
@@ -330,7 +339,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => {
 					console.log('Pause')
-					this.oscClient?.send(['/global/pause'])
+					this.sendOsc(['/global/pause'])
 				},
 			},
 			stop: {
@@ -338,7 +347,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => {
 					console.log('Stop')
-					this.oscClient?.send(['/global/stop'])
+					this.sendOsc(['/global/stop'])
 				},
 			},
 			playPause: {
@@ -347,9 +356,9 @@ class ModuleInstance extends InstanceBase<Config> {
 				callback: async () => {
 					console.log('Toggle Play/Pause')
 					if (this.getVariableValue('isPlaying')) {
-						this.oscClient?.send(['/global/pause'])
+						this.sendOsc(['/global/pause'])
 					} else {
-						this.oscClient?.send(['/global/play'])
+						this.sendOsc(['/global/play'])
 					}
 				},
 			},
@@ -359,9 +368,9 @@ class ModuleInstance extends InstanceBase<Config> {
 				callback: async () => {
 					console.log('Toggle Play/Stop')
 					if (this.getVariableValue('isPlaying')) {
-						this.oscClient?.send(['/global/stop'])
+						this.sendOsc(['/global/stop'])
 					} else {
-						this.oscClient?.send(['/global/play'])
+						this.sendOsc(['/global/play'])
 					}
 				},
 			},
@@ -373,7 +382,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => {
 					console.log('Enable Loop')
-					this.oscClient?.send(['/setlist/enableLoop'])
+					this.sendOsc(['/setlist/enableLoop'])
 				},
 			},
 			escapeLoop: {
@@ -381,7 +390,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => {
 					console.log('Escape Loop')
-					this.oscClient?.send(['/setlist/escapeLoop'])
+					this.sendOsc(['/setlist/escapeLoop'])
 				},
 			},
 			toggleLoop: {
@@ -389,9 +398,9 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => {
 					if (this.isInActiveLoop()) {
-						this.oscClient?.send(['/setlist/escapeLoop'])
+						this.sendOsc(['/setlist/escapeLoop'])
 					} else {
-						this.oscClient?.send(['/setlist/enableLoop'])
+						this.sendOsc(['/setlist/enableLoop'])
 					}
 				},
 			},
@@ -409,7 +418,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Jump to Song by Number', event.options)
-					this.oscClient?.send(['/setlist/jumpToSong', Number(event.options.number)])
+					this.sendOsc(['/setlist/jumpToSong', Number(event.options.number)])
 				},
 			},
 			jumpToSongByName: {
@@ -424,7 +433,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Jump to Song by Number', event.options)
-					this.oscClient?.send(['/setlist/jumpToSong', String(event.options.name)])
+					this.sendOsc(['/setlist/jumpToSong', String(event.options.name)])
 				},
 			},
 			jumpBySongs: {
@@ -442,7 +451,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Jump to Song by Number', event.options)
-					this.oscClient?.send(['/setlist/jumpBySongs', Number(event.options.steps)])
+					this.sendOsc(['/setlist/jumpBySongs', Number(event.options.steps)])
 				},
 			},
 			jumpToSectionByNumber: {
@@ -459,7 +468,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Jump to Section by Number', event.options)
-					this.oscClient?.send(['/setlist/jumpToSection', Number(event.options.number)])
+					this.sendOsc(['/setlist/jumpToSection', Number(event.options.number)])
 				},
 			},
 			jumpToSectionByName: {
@@ -474,7 +483,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Jump to Section by Number', event.options)
-					this.oscClient?.send(['/setlist/jumpToSection', String(event.options.name)])
+					this.sendOsc(['/setlist/jumpToSection', String(event.options.name)])
 				},
 			},
 			jumpBySections: {
@@ -492,7 +501,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Jump by Sections', event.options)
-					this.oscClient?.send(['/setlist/jumpBySections', Number(event.options.steps)])
+					this.sendOsc(['/setlist/jumpBySections', Number(event.options.steps)])
 				},
 			},
 			playCuedSong: {
@@ -500,7 +509,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async (event) => {
 					console.log('Play Cued Song')
-					this.oscClient?.send(['/setlist/playCuedSong'])
+					this.sendOsc(['/setlist/playCuedSong'])
 				},
 			},
 			//#endregion
@@ -522,7 +531,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Scene', event.options)
-					this.oscClient?.send(['/playaudio12/setScene', String(event.options.scene)])
+					this.sendOsc(['/playaudio12/setScene', String(event.options.scene)])
 				},
 			},
 			pa12ToggleScene: {
@@ -530,7 +539,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async (event) => {
 					console.log('Toggle Scene')
-					this.oscClient?.send(['/playaudio12/toggleScene'])
+					this.sendOsc(['/playaudio12/toggleScene'])
 				},
 			},
 
@@ -549,7 +558,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set autoplay:', event.options)
-					this.oscClient?.send(['/settings/autoplay', Number(event.options.value)])
+					this.sendOsc(['/settings/autoplay', Number(event.options.value)])
 				},
 			},
 			setSafeMode: {
@@ -564,7 +573,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set safe mode:', event.options)
-					this.oscClient?.send(['/settings/safeMode', Number(event.options.value)])
+					this.sendOsc(['/settings/safeMode', Number(event.options.value)])
 				},
 			},
 			setAlwaysStopOnSongEnd: {
@@ -579,7 +588,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Always Stop on Song End:', event.options)
-					this.oscClient?.send(['/settings/alwaysStopOnSongEnd', Number(event.options.value)])
+					this.sendOsc(['/settings/alwaysStopOnSongEnd', Number(event.options.value)])
 				},
 			},
 			setAutoJumpToNextSong: {
@@ -594,7 +603,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Autojump to the Next Song:', event.options)
-					this.oscClient?.send(['/settings/autoJumpToNextSong', Number(event.options.value)])
+					this.sendOsc(['/settings/autoJumpToNextSong', Number(event.options.value)])
 				},
 			},
 			setAutoLoopCurrentSection: {
@@ -609,7 +618,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Autoloop the Current Section:', event.options)
-					this.oscClient?.send(['/settings/autoLoopCurrentSection', Number(event.options.value)])
+					this.sendOsc(['/settings/autoLoopCurrentSection', Number(event.options.value)])
 				},
 			},
 			setCountIn: {
@@ -624,7 +633,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Autoloop the Current Section:', event.options)
-					this.oscClient?.send(['/settings/countIn', Number(event.options.value)])
+					this.sendOsc(['/settings/countIn', Number(event.options.value)])
 				},
 			},
 			setCountInSoloClick: {
@@ -639,7 +648,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Solo Click During Count-In:', event.options)
-					this.oscClient?.send(['/settings/countInSoloClick', Number(event.options.value)])
+					this.sendOsc(['/settings/countInSoloClick', Number(event.options.value)])
 				},
 			},
 			setCountInDuration: {
@@ -659,7 +668,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Count-In Duration:', event.options)
-					this.oscClient?.send(['/settings/countInDuration', Number(event.options.value)])
+					this.sendOsc(['/settings/countInDuration', Number(event.options.value)])
 				},
 			},
 			setJumpMode: {
@@ -680,7 +689,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => {
 					console.log('Set Jump Mode:', event.options)
-					this.oscClient?.send(['/settings/jumpMode', String(event.options.value)])
+					this.sendOsc(['/settings/jumpMode', String(event.options.value)])
 				},
 			},
 			//#endregion
