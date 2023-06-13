@@ -36,6 +36,36 @@ const enum Feedback {
 	CanJumpToPreviousSection = 'canJumpToPreviousSection',
 }
 
+/** Available actions */
+const enum Action {
+	Play = 'play',
+	Pause = 'pause',
+	Stop = 'stop',
+	PlayPause = 'playPause',
+	PlayStop = 'playStop',
+	EnableLoop = 'enableLoop',
+	EscapeLoop = 'escapeLoop',
+	ToggleLoop = 'toggleLoop',
+	JumpToSongByNumber = 'jumpToSongByNumber',
+	JumpToSongByName = 'jumpToSongByName',
+	JumpBySongs = 'jumpBySongs',
+	JumpToSectionByNumber = 'jumpToSectionByNumber',
+	JumpToSectionByName = 'jumpToSectionByName',
+	JumpBySections = 'jumpBySections',
+	PlayCuedSong = 'playCuedSong',
+	Pa12SetScene = 'pa12SetScene',
+	Pa12ToggleScene = 'pa12ToggleScene',
+	SetAutoplay = 'setAutoplay',
+	SetSafeMode = 'setSafeMode',
+	SetAlwaysStopOnSongEnd = 'setAlwaysStopOnSongEnd',
+	SetAutoJumpToNextSong = 'setAutoJumpToNextSong',
+	SetAutoLoopCurrentSection = 'setAutoLoopCurrentSection',
+	SetCountIn = 'setCountIn',
+	SetCountInSoloClick = 'setCountInSoloClick',
+	SetCountInDuration = 'setCountInDuration',
+	SetJumpMode = 'setJumpMode',
+}
+
 const makeRange = (number: number) =>
 	Array(number)
 		.fill(0)
@@ -347,35 +377,25 @@ class ModuleInstance extends InstanceBase<Config> {
 	updateActions() {
 		this.setActionDefinitions({
 			//#region global
-			play: {
+			[Action.Play]: {
 				name: 'Play',
 				options: [],
-				callback: async () => {
-					console.log('Play')
-					this.sendOsc(['/global/play'])
-				},
+				callback: async () => this.sendOsc(['/global/play']),
 			},
-			pause: {
+			[Action.Pause]: {
 				name: 'Pause',
 				options: [],
-				callback: async () => {
-					console.log('Pause')
-					this.sendOsc(['/global/pause'])
-				},
+				callback: async () => this.sendOsc(['/global/pause']),
 			},
-			stop: {
+			[Action.Stop]: {
 				name: 'Stop',
 				options: [],
-				callback: async () => {
-					console.log('Stop')
-					this.sendOsc(['/global/stop'])
-				},
+				callback: async () => this.sendOsc(['/global/stop']),
 			},
-			playPause: {
+			[Action.PlayPause]: {
 				name: 'Toggle Play/Pause',
 				options: [],
 				callback: async () => {
-					console.log('Toggle Play/Pause')
 					if (this.getVariableValue('isPlaying')) {
 						this.sendOsc(['/global/pause'])
 					} else {
@@ -383,11 +403,10 @@ class ModuleInstance extends InstanceBase<Config> {
 					}
 				},
 			},
-			playStop: {
+			[Action.PlayStop]: {
 				name: 'Toggle Play/Stop',
 				options: [],
 				callback: async () => {
-					console.log('Toggle Play/Stop')
 					if (this.getVariableValue('isPlaying')) {
 						this.sendOsc(['/global/stop'])
 					} else {
@@ -398,23 +417,17 @@ class ModuleInstance extends InstanceBase<Config> {
 			//#endregion
 
 			//#region setlist
-			enableLoop: {
+			[Action.EnableLoop]: {
 				name: 'Enable Loop',
 				options: [],
-				callback: async () => {
-					console.log('Enable Loop')
-					this.sendOsc(['/setlist/enableLoop'])
-				},
+				callback: async () => this.sendOsc(['/setlist/enableLoop']),
 			},
-			escapeLoop: {
+			[Action.EscapeLoop]: {
 				name: 'Escape Loop',
 				options: [],
-				callback: async () => {
-					console.log('Escape Loop')
-					this.sendOsc(['/setlist/escapeLoop'])
-				},
+				callback: async () => this.sendOsc(['/setlist/escapeLoop']),
 			},
-			toggleLoop: {
+			[Action.ToggleLoop]: {
 				name: 'Toggle Loop',
 				options: [],
 				callback: async () => {
@@ -425,7 +438,7 @@ class ModuleInstance extends InstanceBase<Config> {
 					}
 				},
 			},
-			jumpToSongByNumber: {
+			[Action.JumpToSongByNumber]: {
 				name: 'Jump to Song by Number',
 				options: [
 					{
@@ -437,12 +450,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 1,
 					},
 				],
-				callback: async (event) => {
-					console.log('Jump to Song by Number', event.options)
-					this.sendOsc(['/setlist/jumpToSong', Number(event.options.number)])
-				},
+				callback: async (event) => this.sendOsc(['/setlist/jumpToSong', Number(event.options.number)]),
 			},
-			jumpToSongByName: {
+			[Action.JumpToSongByName]: {
 				name: 'Jump to Song by Name',
 				options: [
 					{
@@ -452,12 +462,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						required: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Jump to Song by Number', event.options)
-					this.sendOsc(['/setlist/jumpToSong', String(event.options.name)])
-				},
+				callback: async (event) => this.sendOsc(['/setlist/jumpToSong', String(event.options.name)]),
 			},
-			jumpBySongs: {
+			[Action.JumpBySongs]: {
 				name: 'Jump by Songs',
 				options: [
 					{
@@ -470,12 +477,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 1,
 					},
 				],
-				callback: async (event) => {
-					console.log('Jump to Song by Number', event.options)
-					this.sendOsc(['/setlist/jumpBySongs', Number(event.options.steps)])
-				},
+				callback: async (event) => this.sendOsc(['/setlist/jumpBySongs', Number(event.options.steps)]),
 			},
-			jumpToSectionByNumber: {
+			[Action.JumpToSectionByNumber]: {
 				name: 'Jump to Section by Number',
 				options: [
 					{
@@ -487,12 +491,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 1,
 					},
 				],
-				callback: async (event) => {
-					console.log('Jump to Section by Number', event.options)
-					this.sendOsc(['/setlist/jumpToSection', Number(event.options.number)])
-				},
+				callback: async (event) => this.sendOsc(['/setlist/jumpToSection', Number(event.options.number)]),
 			},
-			jumpToSectionByName: {
+			[Action.JumpToSectionByName]: {
 				name: 'Jump to Section by Name',
 				options: [
 					{
@@ -502,12 +503,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						required: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Jump to Section by Number', event.options)
-					this.sendOsc(['/setlist/jumpToSection', String(event.options.name)])
-				},
+				callback: async (event) => this.sendOsc(['/setlist/jumpToSection', String(event.options.name)]),
 			},
-			jumpBySections: {
+			[Action.JumpBySections]: {
 				name: 'Jump by Sections',
 				options: [
 					{
@@ -520,23 +518,17 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 1,
 					},
 				],
-				callback: async (event) => {
-					console.log('Jump by Sections', event.options)
-					this.sendOsc(['/setlist/jumpBySections', Number(event.options.steps)])
-				},
+				callback: async (event) => this.sendOsc(['/setlist/jumpBySections', Number(event.options.steps)]),
 			},
-			playCuedSong: {
+			[Action.PlayCuedSong]: {
 				name: 'Play Cued Song',
 				options: [],
-				callback: async (event) => {
-					console.log('Play Cued Song')
-					this.sendOsc(['/setlist/playCuedSong'])
-				},
+				callback: async () => this.sendOsc(['/setlist/playCuedSong']),
 			},
 			//#endregion
 
 			//#region PlayAUDIO12
-			pa12SetScene: {
+			[Action.Pa12SetScene]: {
 				name: 'PlayAUDIO12: Set Scene',
 				options: [
 					{
@@ -550,24 +542,18 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 'A',
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Scene', event.options)
-					this.sendOsc(['/playaudio12/setScene', String(event.options.scene)])
-				},
+				callback: async (event) => this.sendOsc(['/playaudio12/setScene', String(event.options.scene)]),
 			},
-			pa12ToggleScene: {
+			[Action.Pa12ToggleScene]: {
 				name: 'PlayAUDIO12: Toggle Scene',
 				options: [],
-				callback: async (event) => {
-					console.log('Toggle Scene')
-					this.sendOsc(['/playaudio12/toggleScene'])
-				},
+				callback: async () => this.sendOsc(['/playaudio12/toggleScene']),
 			},
 
 			//#endregion
 
 			//#region settings
-			setAutoplay: {
+			[Action.SetAutoplay]: {
 				name: 'Set Autoplay',
 				options: [
 					{
@@ -577,12 +563,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set autoplay:', event.options)
-					this.sendOsc(['/settings/autoplay', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/autoplay', Number(event.options.value)]),
 			},
-			setSafeMode: {
+			[Action.SetSafeMode]: {
 				name: 'Set Safe Mode',
 				options: [
 					{
@@ -592,12 +575,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set safe mode:', event.options)
-					this.sendOsc(['/settings/safeMode', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/safeMode', Number(event.options.value)]),
 			},
-			setAlwaysStopOnSongEnd: {
+			[Action.SetAlwaysStopOnSongEnd]: {
 				name: 'Set Always Stop on Song End',
 				options: [
 					{
@@ -607,12 +587,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Always Stop on Song End:', event.options)
-					this.sendOsc(['/settings/alwaysStopOnSongEnd', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/alwaysStopOnSongEnd', Number(event.options.value)]),
 			},
-			setAutoJumpToNextSong: {
+			[Action.SetAutoJumpToNextSong]: {
 				name: 'Set Autojump to the Next Song',
 				options: [
 					{
@@ -622,12 +599,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Autojump to the Next Song:', event.options)
-					this.sendOsc(['/settings/autoJumpToNextSong', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/autoJumpToNextSong', Number(event.options.value)]),
 			},
-			setAutoLoopCurrentSection: {
+			[Action.SetAutoLoopCurrentSection]: {
 				name: 'Set Autoloop the Current Section',
 				options: [
 					{
@@ -637,12 +611,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Autoloop the Current Section:', event.options)
-					this.sendOsc(['/settings/autoLoopCurrentSection', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/autoLoopCurrentSection', Number(event.options.value)]),
 			},
-			setCountIn: {
+			[Action.SetCountIn]: {
 				name: 'Set Count-In',
 				options: [
 					{
@@ -652,12 +623,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Autoloop the Current Section:', event.options)
-					this.sendOsc(['/settings/countIn', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/countIn', Number(event.options.value)]),
 			},
-			setCountInSoloClick: {
+			[Action.SetCountInSoloClick]: {
 				name: 'Set Solo Click During Count-In',
 				options: [
 					{
@@ -667,12 +635,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: true,
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Solo Click During Count-In:', event.options)
-					this.sendOsc(['/settings/countInSoloClick', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/countInSoloClick', Number(event.options.value)]),
 			},
-			setCountInDuration: {
+			[Action.SetCountInDuration]: {
 				name: 'Set Count-In Duration',
 				options: [
 					{
@@ -687,12 +652,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: '1',
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Count-In Duration:', event.options)
-					this.sendOsc(['/settings/countInDuration', Number(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/countInDuration', Number(event.options.value)]),
 			},
-			setJumpMode: {
+			[Action.SetJumpMode]: {
 				name: 'Set Jump Mode',
 				options: [
 					{
@@ -708,10 +670,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 'quantized',
 					},
 				],
-				callback: async (event) => {
-					console.log('Set Jump Mode:', event.options)
-					this.sendOsc(['/settings/jumpMode', String(event.options.value)])
-				},
+				callback: async (event) => this.sendOsc(['/settings/jumpMode', String(event.options.value)]),
 			},
 			//#endregion
 		})
@@ -935,7 +894,7 @@ class ModuleInstance extends InstanceBase<Config> {
 					name: `Song ${i + 1}`,
 					type: 'button',
 					style: { ...defaultSongStyle, text: `$(AbleSet:song${i + 1}Name)` },
-					steps: [{ down: [{ actionId: 'jumpToSongByNumber', options: { number: i + 1 } }], up: [] }],
+					steps: [{ down: [{ actionId: Action.JumpToSongByNumber, options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
 						{ feedbackId: Feedback.IsQueuedSong, options: { songNumber: i + 1 }, style: { bgcolor: COLOR_DARK_GREEN } },
 						{ feedbackId: Feedback.IsCurrentSong, options: { songNumber: i + 1 }, style: { bgcolor: COLOR_GREEN } },
@@ -952,7 +911,7 @@ class ModuleInstance extends InstanceBase<Config> {
 					name: `Section ${i + 1}`,
 					type: 'button',
 					style: { ...defaultSongStyle, text: `$(AbleSet:section${i + 1}Name)` },
-					steps: [{ down: [{ actionId: 'jumpToSectionByNumber', options: { number: i + 1 } }], up: [] }],
+					steps: [{ down: [{ actionId: Action.JumpToSectionByNumber, options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
 						{
 							feedbackId: Feedback.IsQueuedSection,
@@ -975,7 +934,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Toggle Play/Pause',
 				type: 'button',
 				style: { ...defaultStyle, text: 'Play\nPause' },
-				steps: [{ down: [{ actionId: 'playPause', options: {} }], up: [] }],
+				steps: [{ down: [{ actionId: Action.PlayPause, options: {} }], up: [] }],
 				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN } }],
 			},
 			playStop: {
@@ -983,7 +942,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Toggle Play/Stop',
 				type: 'button',
 				style: { ...defaultStyle, text: 'Play\nStop' },
-				steps: [{ down: [{ actionId: 'playStop', options: {} }], up: [] }],
+				steps: [{ down: [{ actionId: Action.PlayStop, options: {} }], up: [] }],
 				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN } }],
 			},
 			prevSong: {
@@ -991,7 +950,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Previous Song',
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSong' },
-				steps: [{ down: [{ actionId: 'jumpBySongs', options: { steps: -1 } }], up: [] }],
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -1 } }], up: [] }],
 				feedbacks: [{ feedbackId: Feedback.CanJumpToPreviousSong, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			nextSong: {
@@ -999,7 +958,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Next Song',
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSong' },
-				steps: [{ down: [{ actionId: 'jumpBySongs', options: { steps: 1 } }], up: [] }],
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 1 } }], up: [] }],
 				feedbacks: [{ feedbackId: Feedback.CanJumpToNextSong, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			prevSection: {
@@ -1007,7 +966,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Previous Section',
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSection' },
-				steps: [{ down: [{ actionId: 'jumpBySections', options: { steps: -1 } }], up: [] }],
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -1 } }], up: [] }],
 				feedbacks: [{ feedbackId: Feedback.CanJumpToPreviousSection, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			nextSection: {
@@ -1015,7 +974,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Next Section',
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSection' },
-				steps: [{ down: [{ actionId: 'jumpBySections', options: { steps: 1 } }], up: [] }],
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 1 } }], up: [] }],
 				feedbacks: [{ feedbackId: Feedback.CanJumpToNextSection, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			toggleLoop: {
@@ -1023,7 +982,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Toggle Loop',
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: 'Loop' },
-				steps: [{ down: [{ actionId: 'toggleLoop', options: {} }], up: [] }],
+				steps: [{ down: [{ actionId: Action.ToggleLoop, options: {} }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsInLoop, options: {}, style: { color: COLOR_WHITE } },
 					{ feedbackId: Feedback.IsInActiveLoop, options: {}, style: { bgcolor: COLOR_GREEN } },
