@@ -36,7 +36,7 @@ const COLOR_DARK_GREEN = combineRgb(0, 125, 0)
 const PRESET_COUNT = 32
 
 class ModuleInstance extends InstanceBase<Config> {
-	config: Config = { clientHost: '', clientPort: '39052', serverHost: '127.0.0.1' }
+	config: Config = { clientHost: '127.0.0.1', clientPort: '39052', serverHost: '127.0.0.1' }
 	oscServer: Server | null = null
 	oscClient: Client | null = null
 
@@ -72,7 +72,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				throw new Error('Client port is not valid: ' + this.config.clientPort)
 			}
 
-			this.oscServer = new Server(clientPort, '127.0.0.1')
+			this.oscServer = new Server(clientPort, config.clientHost)
 			this.oscClient = new Client(this.config.serverHost, 39051)
 			this.log('info', `OSC client is sending to ${this.config.serverHost}:39051`)
 
