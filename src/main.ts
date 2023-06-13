@@ -661,15 +661,12 @@ class ModuleInstance extends InstanceBase<Config> {
 			{ variableId: 'queuedSongName', name: 'Queued Song Name' },
 			{ variableId: 'queuedSongIndex', name: 'Queued Song Index' },
 
-			// { variableId: 'activeSongColor', name: 'Active Song Color' },
 			{ variableId: 'activeSectionName', name: 'Active Section Name' },
 			{ variableId: 'activeSectionIndex', name: 'Active Section Index' },
 			{ variableId: 'queuedSectionName', name: 'Queued Section Name' },
 			{ variableId: 'queuedSectionIndex', name: 'Queued Section Index' },
-			// { variableId: 'activeSectionColor', name: 'Active Section Color' },
 			{ variableId: 'nextSongName', name: 'Next Song Name' },
 			{ variableId: 'nextSongIndex', name: 'Next Song Index' },
-			// { variableId: 'nextSongColor', name: 'Next Song Color' },
 
 			...Array(PRESET_COUNT)
 				.fill(0)
