@@ -2,11 +2,11 @@
 	"id": "ableset",
 	"name": "AbleSet",
 	"shortname": "AbleSet",
-	"description": "Control AbleSet and View the Current State",
-	"version": "0.0.0",
+	"description": "Control AbleSet and View the Current State of Your Setlist",
+	"version": "1.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-your-module-name.git",
-	"bugs": "https://github.com/bitfocus/companion-module-your-module-name/issues",
+	"repository": "git+https://github.com/bitfocus/companion-module-ableset.git",
+	"bugs": "https://github.com/bitfocus/companion-module-ableset/issues",
 	"maintainers": [
 		{
 			"name": "Léo Bernard",
@@ -20,7 +20,7 @@
 		"entrypoint": "../main.js"
 	},
 	"legacyIds": [],
-	"manufacturer": "Leolabs",
+	"manufacturer": "AbleSet",
 	"products": ["AbleSet"],
-	"keywords": []
+	"keywords": ["Ableton", "Live", "Setlist"]
 }
