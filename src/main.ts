@@ -21,6 +21,21 @@ interface Config {
 	serverHost: string
 }
 
+/** Available feedbacks */
+const enum Feedback {
+	IsPlaying = 'isPlaying',
+	IsInLoop = 'isInLoop',
+	IsInActiveLoop = 'isInActiveLoop',
+	IsCurrentSong = 'isCurrentSong',
+	IsCurrentSection = 'isCurrentSection',
+	IsQueuedSong = 'isQueuedSong',
+	IsQueuedSection = 'isQueuedSection',
+	CanJumpToNextSong = 'canJumpToNextSong',
+	CanJumpToPreviousSong = 'canJumpToPreviousSong',
+	CanJumpToNextSection = 'canJumpToNextSection',
+	CanJumpToPreviousSection = 'canJumpToPreviousSection',
+}
+
 const makeRange = (number: number) =>
 	Array(number)
 		.fill(0)
@@ -133,13 +148,13 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	/** Waits until all new OSC values are received before running updates */
-	debouncedCheckFeedbacks = debounceGather((types: string[]) => this.checkFeedbacks(...types), 50)
+	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 50)
 
 	initOscListeners(server: Server) {
 		//#region global
 		server.on('/global/beatsPosition', ([, beats]) => {
 			this.setVariableValues({ beatsPosition: Number(beats) })
-			this.debouncedCheckFeedbacks('isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks(Feedback.IsInLoop, Feedback.IsInActiveLoop)
 		})
 		server.on('/global/humanPosition', ([, bars, beats]) => {
 			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}` })
@@ -149,7 +164,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/global/isPlaying', ([, isPlaying]) => {
 			this.setVariableValues({ isPlaying: Boolean(isPlaying) })
-			this.debouncedCheckFeedbacks('isPlaying')
+			this.debouncedCheckFeedbacks(Feedback.IsPlaying)
 		})
 		server.on('/global/timeSignature', ([, numerator, denominator]) => {
 			this.setVariableValues({ timeSignature: `${numerator}/${denominator}` })
@@ -165,28 +180,32 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.setVariableValues(
 				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')]))
 			)
-			this.debouncedCheckFeedbacks('canJumpToNextSong', 'canJumpToPreviousSong')
+			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
 		})
 		server.on('/setlist/sections', ([, ...sections]) => {
 			this.sections = sections as string[]
 			this.setVariableValues(
 				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]))
 			)
-			this.debouncedCheckFeedbacks('canJumpToNextSection', 'canJumpToPreviousSection')
+			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSection, Feedback.CanJumpToPreviousSection)
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {
 			this.setVariableValues({ activeSongName: String(activeSongName) })
 		})
 		server.on('/setlist/activeSongIndex', ([, activeSongIndex]) => {
 			this.setVariableValues({ activeSongIndex: Number(activeSongIndex) })
-			this.debouncedCheckFeedbacks('isCurrentSong', 'canJumpToNextSong', 'canJumpToPreviousSong')
+			this.debouncedCheckFeedbacks(Feedback.IsCurrentSong, Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
 		})
 		server.on('/setlist/activeSectionName', ([, activeSectionName]) => {
 			this.setVariableValues({ activeSectionName: String(activeSectionName) })
 		})
 		server.on('/setlist/activeSectionIndex', ([, activeSectionIndex]) => {
 			this.setVariableValues({ activeSectionIndex: Number(activeSectionIndex) })
-			this.debouncedCheckFeedbacks('isCurrentSection', 'canJumpToNextSection', 'canJumpToPreviousSection')
+			this.debouncedCheckFeedbacks(
+				Feedback.IsCurrentSection,
+				Feedback.CanJumpToNextSection,
+				Feedback.CanJumpToPreviousSection
+			)
 		})
 		server.on('/setlist/queuedSongSectionName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
@@ -199,7 +218,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				queuedSongIndex: Number(queuedSong),
 				queuedSectionIndex: Number(queuedSection),
 			})
-			this.debouncedCheckFeedbacks('isQueuedSong', 'isQueuedSection')
+			this.debouncedCheckFeedbacks(Feedback.IsQueuedSong, Feedback.IsQueuedSection)
 		})
 		server.on('/setlist/nextSongName', ([, nextSongName]) => {
 			this.setVariableValues({ nextSongName: String(nextSongName) })
@@ -209,15 +228,15 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/setlist/loopEnabled', ([, loopEnabled]) => {
 			this.setVariableValues({ loopEnabled: Boolean(loopEnabled) })
-			this.debouncedCheckFeedbacks('loopEnabled', 'isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks(Feedback.IsInLoop, Feedback.IsInActiveLoop)
 		})
 		server.on('/setlist/loopStart', ([, loopStart]) => {
 			this.setVariableValues({ loopStart: Number(loopStart) })
-			this.debouncedCheckFeedbacks('isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks(Feedback.IsInLoop, Feedback.IsInActiveLoop)
 		})
 		server.on('/setlist/loopEnd', ([, loopEnd]) => {
 			this.setVariableValues({ loopEnd: Number(loopEnd) })
-			this.debouncedCheckFeedbacks('isInLoop', 'isInActiveLoop')
+			this.debouncedCheckFeedbacks(Feedback.IsInLoop, Feedback.IsInActiveLoop)
 		})
 		server.on('/setlist/isCountingIn', ([, isCountingIn]) => {
 			this.setVariableValues({ isCountingIn: Boolean(isCountingIn) })
@@ -751,7 +770,7 @@ class ModuleInstance extends InstanceBase<Config> {
 
 	updateFeedbacks() {
 		this.setFeedbackDefinitions({
-			isPlaying: {
+			[Feedback.IsPlaying]: {
 				type: 'boolean',
 				name: 'Playing',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -761,7 +780,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
-			isInLoop: {
+			[Feedback.IsInLoop]: {
 				type: 'boolean',
 				name: 'Is in Loop',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -772,7 +791,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
-			isInActiveLoop: {
+			[Feedback.IsInActiveLoop]: {
 				type: 'boolean',
 				name: 'Is in Active Loop',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -780,7 +799,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
-			isCurrentSong: {
+			[Feedback.IsCurrentSong]: {
 				type: 'boolean',
 				name: 'Is Current Song',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -799,7 +818,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
-			isCurrentSection: {
+			[Feedback.IsCurrentSection]: {
 				type: 'boolean',
 				name: 'Is Current Section',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -818,7 +837,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
-			isQueuedSong: {
+			[Feedback.IsQueuedSong]: {
 				type: 'boolean',
 				name: 'Is Queued Song',
 				defaultStyle: { bgcolor: COLOR_DARK_GREEN },
@@ -840,7 +859,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
-			isQueuedSection: {
+			[Feedback.IsQueuedSection]: {
 				type: 'boolean',
 				name: 'Is Queued Section',
 				defaultStyle: { bgcolor: COLOR_DARK_GREEN },
@@ -862,7 +881,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
-			canJumpToNextSong: {
+			[Feedback.CanJumpToNextSong]: {
 				type: 'boolean',
 				name: 'Can Jump to Next Song',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -872,7 +891,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
-			canJumpToPreviousSong: {
+			[Feedback.CanJumpToPreviousSong]: {
 				type: 'boolean',
 				name: 'Can Jump to Previous Song',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -882,7 +901,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
-			canJumpToNextSection: {
+			[Feedback.CanJumpToNextSection]: {
 				type: 'boolean',
 				name: 'Can Jump to Next Section',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -892,7 +911,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
-			canJumpToPreviousSection: {
+			[Feedback.CanJumpToPreviousSection]: {
 				type: 'boolean',
 				name: 'Can Jump to Previous Section',
 				defaultStyle: { bgcolor: COLOR_GREEN },
@@ -918,8 +937,8 @@ class ModuleInstance extends InstanceBase<Config> {
 					style: { ...defaultSongStyle, text: `$(AbleSet:song${i + 1}Name)` },
 					steps: [{ down: [{ actionId: 'jumpToSongByNumber', options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
-						{ feedbackId: 'isQueuedSong', options: { songNumber: i + 1 }, style: { bgcolor: COLOR_DARK_GREEN } },
-						{ feedbackId: 'isCurrentSong', options: { songNumber: i + 1 }, style: { bgcolor: COLOR_GREEN } },
+						{ feedbackId: Feedback.IsQueuedSong, options: { songNumber: i + 1 }, style: { bgcolor: COLOR_DARK_GREEN } },
+						{ feedbackId: Feedback.IsCurrentSong, options: { songNumber: i + 1 }, style: { bgcolor: COLOR_GREEN } },
 					],
 				} as CompanionButtonPresetDefinition,
 			])
@@ -935,8 +954,16 @@ class ModuleInstance extends InstanceBase<Config> {
 					style: { ...defaultSongStyle, text: `$(AbleSet:section${i + 1}Name)` },
 					steps: [{ down: [{ actionId: 'jumpToSectionByNumber', options: { number: i + 1 } }], up: [] }],
 					feedbacks: [
-						{ feedbackId: 'isQueuedSection', options: { sectionNumber: i + 1 }, style: { bgcolor: COLOR_DARK_GREEN } },
-						{ feedbackId: 'isCurrentSection', options: { sectionNumber: i + 1 }, style: { bgcolor: COLOR_GREEN } },
+						{
+							feedbackId: Feedback.IsQueuedSection,
+							options: { sectionNumber: i + 1 },
+							style: { bgcolor: COLOR_DARK_GREEN },
+						},
+						{
+							feedbackId: Feedback.IsCurrentSection,
+							options: { sectionNumber: i + 1 },
+							style: { bgcolor: COLOR_GREEN },
+						},
 					],
 				} as CompanionButtonPresetDefinition,
 			])
@@ -949,7 +976,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, text: 'Play\nPause' },
 				steps: [{ down: [{ actionId: 'playPause', options: {} }], up: [] }],
-				feedbacks: [{ feedbackId: 'isPlaying', options: {}, style: { bgcolor: COLOR_GREEN } }],
+				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN } }],
 			},
 			playStop: {
 				category: 'Playback',
@@ -957,7 +984,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, text: 'Play\nStop' },
 				steps: [{ down: [{ actionId: 'playStop', options: {} }], up: [] }],
-				feedbacks: [{ feedbackId: 'isPlaying', options: {}, style: { bgcolor: COLOR_GREEN } }],
+				feedbacks: [{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN } }],
 			},
 			prevSong: {
 				category: 'Playback',
@@ -965,7 +992,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSong' },
 				steps: [{ down: [{ actionId: 'jumpBySongs', options: { steps: -1 } }], up: [] }],
-				feedbacks: [{ feedbackId: 'canJumpToPreviousSong', options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [{ feedbackId: Feedback.CanJumpToPreviousSong, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			nextSong: {
 				category: 'Playback',
@@ -973,7 +1000,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSong' },
 				steps: [{ down: [{ actionId: 'jumpBySongs', options: { steps: 1 } }], up: [] }],
-				feedbacks: [{ feedbackId: 'canJumpToNextSong', options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [{ feedbackId: Feedback.CanJumpToNextSong, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			prevSection: {
 				category: 'Playback',
@@ -981,7 +1008,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSection' },
 				steps: [{ down: [{ actionId: 'jumpBySections', options: { steps: -1 } }], up: [] }],
-				feedbacks: [{ feedbackId: 'canJumpToPreviousSection', options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [{ feedbackId: Feedback.CanJumpToPreviousSection, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			nextSection: {
 				category: 'Playback',
@@ -989,7 +1016,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSection' },
 				steps: [{ down: [{ actionId: 'jumpBySections', options: { steps: 1 } }], up: [] }],
-				feedbacks: [{ feedbackId: 'canJumpToNextSection', options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [{ feedbackId: Feedback.CanJumpToNextSection, options: {}, style: { color: COLOR_WHITE } }],
 			},
 			toggleLoop: {
 				category: 'Playback',
@@ -998,8 +1025,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				style: { ...defaultStyle, color: COLOR_GRAY, text: 'Loop' },
 				steps: [{ down: [{ actionId: 'toggleLoop', options: {} }], up: [] }],
 				feedbacks: [
-					{ feedbackId: 'isInLoop', options: {}, style: { color: COLOR_WHITE } },
-					{ feedbackId: 'isInActiveLoop', options: {}, style: { bgcolor: COLOR_GREEN } },
+					{ feedbackId: Feedback.IsInLoop, options: {}, style: { color: COLOR_WHITE } },
+					{ feedbackId: Feedback.IsInActiveLoop, options: {}, style: { bgcolor: COLOR_GREEN } },
 				],
 			},
 		}
