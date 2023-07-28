@@ -1075,8 +1075,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: 'Current Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `Current Song` },
-				style: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `$(AbleSet:activeSongName)` },
+				previewStyle: { ...defaultSongStyle, bgcolor: COLOR_GREEN_500, text: `Current Song` },
+				style: { ...defaultSongStyle, bgcolor: COLOR_GREEN_500, text: `$(AbleSet:activeSongName)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 0, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 0 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1086,8 +1086,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: 'Next Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `Next Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSongName)` },
+				previewStyle: { ...defaultSongStyle, text: `Next Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 1, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 1 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1097,8 +1097,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: '2nd Next Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `2nd Next Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSongName2)` },
+				previewStyle: { ...defaultSongStyle, text: `2nd Next Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName2)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 2, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 2 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1108,8 +1108,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: '3rd Next Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `3rd Next Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSongName3)` },
+				previewStyle: { ...defaultSongStyle, text: `3rd Next Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName3)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 3, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 3 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1119,8 +1119,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: '4th Next Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `4th Next Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSongName4)` },
+				previewStyle: { ...defaultSongStyle, text: `4th Next Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName4)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 4, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 4 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1130,8 +1130,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: 'Previous Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `Prev Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSongName)` },
+				previewStyle: { ...defaultSongStyle, text: `Prev Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -1, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -1 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1141,8 +1141,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: '2nd Previous Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `2nd Prev Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSongName2)` },
+				previewStyle: { ...defaultSongStyle, text: `2nd Prev Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName2)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -2, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -2 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1152,8 +1152,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: '3rd Previous Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `3rd Prev Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSongName3)` },
+				previewStyle: { ...defaultSongStyle, text: `3rd Prev Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName3)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -3, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -3 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1163,8 +1163,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Songs',
 				name: '4th Previous Song',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `4th Prev Song` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSongName4)` },
+				previewStyle: { ...defaultSongStyle, text: `4th Prev Song` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName4)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -4, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -4 }, style: { bgcolor: COLOR_GREEN_800 } },
@@ -1177,8 +1177,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: 'Current Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `Current Section` },
-				style: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `$(AbleSet:activeSectionName)` },
+				previewStyle: { ...defaultSongStyle, bgcolor: COLOR_GREEN_500, text: `Current Section` },
+				style: { ...defaultSongStyle, bgcolor: COLOR_GREEN_500, text: `$(AbleSet:activeSectionName)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 0, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1192,8 +1192,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: 'Next Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `Next Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName)` },
+				previewStyle: { ...defaultSongStyle, text: `Next Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 1, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1207,8 +1207,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: '2nd Next Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `2nd Next Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName2)` },
+				previewStyle: { ...defaultSongStyle, text: `2nd Next Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName2)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 2, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1222,8 +1222,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: '3rd Next Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `3rd Next Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName3)` },
+				previewStyle: { ...defaultSongStyle, text: `3rd Next Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName3)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 3, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1237,8 +1237,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: '4th Next Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `4th Next Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName4)` },
+				previewStyle: { ...defaultSongStyle, text: `4th Next Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName4)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 4, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1252,8 +1252,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: 'Previous Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `Prev Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName)` },
+				previewStyle: { ...defaultSongStyle, text: `Prev Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -1, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1267,8 +1267,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: '2nd Previous Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `2nd Prev Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName2)` },
+				previewStyle: { ...defaultSongStyle, text: `2nd Prev Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName2)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -2, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1282,8 +1282,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: '3rd Previous Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `3rd Prev Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName3)` },
+				previewStyle: { ...defaultSongStyle, text: `3rd Prev Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName3)` },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -3, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
@@ -1297,8 +1297,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				category: 'Jump Sections',
 				name: '4th Previous Section',
 				type: 'button',
-				previewStyle: { ...defaultStyle, text: `4th Prev Section` },
-				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName4)` },
+				previewStyle: { ...defaultSongStyle, text: `4th Prev Section` },
+				style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName4)` },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -4, force: 'true' } }], up: [] }],
 				feedbacks: [
 					{
