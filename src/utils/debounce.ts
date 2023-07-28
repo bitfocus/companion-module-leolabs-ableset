@@ -13,6 +13,7 @@ export function debounceGather<T extends string>(func: (values: T[]) => unknown,
 		var later = function () {
 			timeout = null
 			func.apply(context, [Array.from(gatheredValues.values())])
+			gatheredValues.clear()
 		}
 
 		timeout && clearTimeout(timeout)
