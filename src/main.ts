@@ -39,6 +39,7 @@ const COLOR_GREEN_700 = combineRgb(21, 128, 61)
 const COLOR_GREEN_800 = combineRgb(22, 101, 52)
 
 const PLAY_ICON = '<icon:play.png>'
+const PLAY_ICON_GRAY = '<icon:play-gray.png>'
 const PAUSE_ICON_GREEN = '<icon:pause-green.png>'
 const STOP_ICON_GREEN = '<icon:stop-green.png>'
 const LOOP_ICON = '<icon:loop.png>'
@@ -1316,6 +1317,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Toggle Play/Pause',
 				type: 'button',
 				style: { ...defaultStyle, text: '', png64: PLAY_ICON },
+				previewStyle: { ...defaultStyle, text: 'Play Pause', png64: PLAY_ICON_GRAY },
 				steps: [{ down: [{ actionId: Action.PlayPause, options: {} }], up: [] }],
 				feedbacks: [
 					{
@@ -1330,6 +1332,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Toggle Play/Stop',
 				type: 'button',
 				style: { ...defaultStyle, text: '', png64: PLAY_ICON },
+				previewStyle: { ...defaultStyle, text: 'Play Stop', png64: PLAY_ICON_GRAY },
 				steps: [{ down: [{ actionId: Action.PlayStop, options: {} }], up: [] }],
 				feedbacks: [
 					{
