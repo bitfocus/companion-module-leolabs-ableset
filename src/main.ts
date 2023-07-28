@@ -80,6 +80,10 @@ class ModuleInstance extends InstanceBase<Config> {
 
 	songs: string[] = []
 	sections: string[] = []
+	activeSongName = ''
+	activeSongIndex = -1
+	activeSectionName = ''
+	activeSectionIndex = -1
 
 	constructor(internal: any) {
 		super(internal)
@@ -96,7 +100,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		) {
 			this.updateStatus(
 				InstanceStatus.BadConfig,
-				"You must provide an IP address for AbleSet to send updates to when AbleSet isn't running on this machine, and it can't be 127.0.0.1 or localhost."
+				"You must provide an IP address for AbleSet to send updates to when AbleSet isn't running on this machine, and it can't be 127.0.0.1 or localhost.",
 			)
 			return
 		}
@@ -189,10 +193,12 @@ class ModuleInstance extends InstanceBase<Config> {
 	/** Waits until all new OSC values are received before running updates */
 	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 50)
 
-	updateNextPreviousSongs = debounce(() => {
-		const currentIndex = Number(this.getVariableValue('activeSongIndex'))
+	updateSongs = debounce(() => {
+		const currentIndex = this.activeSongIndex
 
 		this.setVariableValues({
+			activeSongName: this.activeSongName,
+			activeSongIndex: this.activeSongIndex,
 			nextSongName: this.songs[currentIndex + 1],
 			nextSongName2: this.songs[currentIndex + 2],
 			nextSongName3: this.songs[currentIndex + 3],
@@ -202,12 +208,14 @@ class ModuleInstance extends InstanceBase<Config> {
 			previousSongName3: this.songs[currentIndex - 3],
 			previousSongName4: this.songs[currentIndex - 4],
 		})
-	}, 50)
+	}, 20)
 
-	updateNextPreviousSections = debounce(() => {
-		const currentIndex = Number(this.getVariableValue('activeSectionIndex'))
+	updateSections = debounce(() => {
+		const currentIndex = this.activeSectionIndex
 
 		this.setVariableValues({
+			activeSectionName: this.activeSectionName,
+			activeSectionIndex: this.activeSectionIndex,
 			nextSectionName: this.sections[currentIndex + 1],
 			nextSectionName2: this.sections[currentIndex + 2],
 			nextSectionName3: this.sections[currentIndex + 3],
@@ -217,7 +225,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			previousSectionName3: this.sections[currentIndex - 3],
 			previousSectionName4: this.sections[currentIndex - 4],
 		})
-	}, 50)
+	}, 20)
 
 	initOscListeners(server: Server) {
 		//#region global
@@ -247,44 +255,46 @@ class ModuleInstance extends InstanceBase<Config> {
 		server.on('/setlist/songs', ([, ...songs]) => {
 			this.songs = songs as string[]
 			this.setVariableValues(
-				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')]))
+				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')])),
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
-			this.updateNextPreviousSongs()
+			this.updateSongs()
 		})
 		server.on('/setlist/sections', ([, ...sections]) => {
 			this.sections = sections as string[]
 			this.setVariableValues(
-				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]))
+				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')])),
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSection, Feedback.CanJumpToPreviousSection)
-			this.updateNextPreviousSections()
+			this.updateSections()
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {
-			this.setVariableValues({ activeSongName: String(activeSongName ?? '') })
+			this.activeSongName = String(activeSongName ?? '')
+			this.updateSongs()
 		})
 		server.on('/setlist/activeSongIndex', ([, activeSongIndex]) => {
-			this.setVariableValues({ activeSongIndex: Number(activeSongIndex ?? -1) })
+			this.activeSongIndex = Number(activeSongIndex ?? -1)
+			this.updateSongs()
 			this.debouncedCheckFeedbacks(
 				Feedback.IsCurrentSong,
 				Feedback.CanJumpToNextSong,
 				Feedback.CanJumpToPreviousSong,
-				Feedback.IsQueuedNextSong
+				Feedback.IsQueuedNextSong,
 			)
-			this.updateNextPreviousSongs()
 		})
 		server.on('/setlist/activeSectionName', ([, activeSectionName]) => {
-			this.setVariableValues({ activeSectionName: String(activeSectionName ?? '') })
+			this.activeSectionName = String(activeSectionName ?? '')
+			this.updateSections()
 		})
 		server.on('/setlist/activeSectionIndex', ([, activeSectionIndex]) => {
-			this.setVariableValues({ activeSectionIndex: Number(activeSectionIndex ?? -1) })
+			this.activeSectionIndex = Number(activeSectionIndex ?? -1)
+			this.updateSections()
 			this.debouncedCheckFeedbacks(
 				Feedback.IsCurrentSection,
 				Feedback.CanJumpToNextSection,
 				Feedback.CanJumpToPreviousSection,
-				Feedback.IsQueuedNextSection
+				Feedback.IsQueuedNextSection,
 			)
-			this.updateNextPreviousSections()
 		})
 		server.on('/setlist/queuedName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
@@ -305,14 +315,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.CanJumpToNextSong,
 				Feedback.CanJumpToPreviousSong,
 				Feedback.CanJumpToNextSection,
-				Feedback.CanJumpToPreviousSection
+				Feedback.CanJumpToPreviousSection,
 			)
-		})
-		server.on('/setlist/nextSongName', ([, nextSongName]) => {
-			this.setVariableValues({ nextSongName: String(nextSongName) })
-		})
-		server.on('/setlist/nextSongIndex', ([, nextSongIndex]) => {
-			this.setVariableValues({ nextSongIndex: Number(nextSongIndex) })
 		})
 		server.on('/setlist/loopEnabled', ([, loopEnabled]) => {
 			this.setVariableValues({ loopEnabled: Boolean(loopEnabled) })
@@ -804,8 +808,6 @@ class ModuleInstance extends InstanceBase<Config> {
 			{ variableId: 'activeSectionIndex', name: 'Active Section Index' },
 			{ variableId: 'queuedSectionName', name: 'Queued Section Name' },
 			{ variableId: 'queuedSectionIndex', name: 'Queued Section Index' },
-			{ variableId: 'nextSongName', name: 'Next Song Name' },
-			{ variableId: 'nextSongIndex', name: 'Next Song Index' },
 
 			...Array(PRESET_COUNT)
 				.fill(0)
@@ -1148,7 +1150,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						},
 					],
 				} as CompanionButtonPresetDefinition,
-			])
+			]),
 		)
 
 		const sectionPresets = Object.fromEntries(
@@ -1174,7 +1176,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						},
 					],
 				} as CompanionButtonPresetDefinition,
-			])
+			]),
 		)
 
 		const nextPrevSongs: CompanionPresetDefinitions = {
@@ -1542,7 +1544,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						},
 					],
 				} as CompanionButtonPresetDefinition,
-			])
+			]),
 		)
 
 		const countInDurationSettingsPresets = Object.fromEntries(
@@ -1563,7 +1565,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						},
 					],
 				} as CompanionButtonPresetDefinition,
-			])
+			]),
 		)
 
 		const jumpModeSettingsPresets = Object.fromEntries(
@@ -1584,7 +1586,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						},
 					],
 				} as CompanionButtonPresetDefinition,
-			])
+			]),
 		)
 
 		this.setPresetDefinitions({
