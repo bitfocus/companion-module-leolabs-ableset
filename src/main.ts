@@ -278,7 +278,11 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.IsQueuedSong,
 				Feedback.IsQueuedSection,
 				Feedback.IsQueuedNextSong,
-				Feedback.IsQueuedNextSection
+				Feedback.IsQueuedNextSection,
+				Feedback.CanJumpToNextSong,
+				Feedback.CanJumpToPreviousSong,
+				Feedback.CanJumpToNextSection,
+				Feedback.CanJumpToPreviousSection
 			)
 		})
 		server.on('/setlist/nextSongName', ([, nextSongName]) => {
@@ -924,51 +928,72 @@ class ModuleInstance extends InstanceBase<Config> {
 
 			[Feedback.IsQueuedNextSong]: {
 				type: 'boolean',
-				name: 'Is Queued Next Song',
+				name: 'Is Queued Song Relative to Current',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
 					const queuedSongIndex = Number(this.getVariableValue('queuedSongIndex') ?? -1)
 					const activeSongIndex = Number(this.getVariableValue('activeSongIndex') ?? -1)
-					const songIndex = activeSongIndex + Number(feedback.options.songDelta)
-					this.log('info', 'Queued song: ' + JSON.stringify({ queuedSongIndex, activeSongIndex, songIndex }))
-					return queuedSongIndex !== -1 && queuedSongIndex === songIndex
+
+					if (queuedSongIndex === -1) {
+						return false
+					} else if (feedback.options.songDelta === 'anyNext') {
+						return queuedSongIndex > activeSongIndex
+					} else if (feedback.options.songDelta === 'anyPrevious') {
+						return queuedSongIndex < activeSongIndex
+					} else {
+						const songIndex = activeSongIndex + Number(feedback.options.songDelta)
+						return queuedSongIndex !== -1 && queuedSongIndex === songIndex
+					}
 				},
 				options: [
 					{
 						id: 'songDelta',
 						label: 'Song Delta',
 						tooltip: 'e.g. 1 for the next song, -1 for the previous song',
-						type: 'number',
-						min: -100,
-						max: 100,
+						type: 'dropdown',
+						allowCustom: true,
+						choices: [
+							{ id: 'anyNext', label: 'Any Next Song' },
+							{ id: 'anyPrevious', label: 'Any Previous Song' },
+						],
 						default: 1,
+						regex: '^-?\\d+$',
 					},
 				],
 			},
 
 			[Feedback.IsQueuedNextSection]: {
 				type: 'boolean',
-				name: 'Is Queued Next Section',
+				name: 'Is Queued Section Relative to Current',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
 					const queuedSectionIndex = Number(this.getVariableValue('queuedSectionIndex') ?? -1)
 					const activeSectionIndex = Number(this.getVariableValue('activeSectionIndex') ?? -1)
-					const sectionIndex = activeSectionIndex + Number(feedback.options.sectionDelta)
-					this.log(
-						'info',
-						'Queued section: ' + JSON.stringify({ queuedSectionIndex, activeSectionIndex, sectionIndex })
-					)
-					return queuedSectionIndex !== -1 && queuedSectionIndex === sectionIndex
+
+					if (queuedSectionIndex === -1) {
+						return false
+					} else if (feedback.options.sectionDelta === 'anyNext') {
+						return queuedSectionIndex > activeSectionIndex
+					} else if (feedback.options.sectionDelta === 'anyPrevious') {
+						return queuedSectionIndex < activeSectionIndex
+					} else {
+						const songIndex = activeSectionIndex + Number(feedback.options.sectionDelta)
+						return queuedSectionIndex !== -1 && queuedSectionIndex === songIndex
+					}
 				},
 				options: [
 					{
 						id: 'sectionDelta',
-						label: 'Section Delta',
+						label: 'Song Delta',
 						tooltip: 'e.g. 1 for the next section, -1 for the previous section',
-						type: 'number',
-						min: -100,
-						max: 100,
+						type: 'dropdown',
+						allowCustom: true,
+						choices: [
+							{ id: 'anyNext', label: 'Any Next Section' },
+							{ id: 'anyPrevious', label: 'Any Previous Section' },
+						],
 						default: 1,
+						regex: '^-?\\d+$',
 					},
 				],
 			},
@@ -1348,7 +1373,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSong' },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -1 } }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.CanJumpToPreviousSong, options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [
+					{ feedbackId: Feedback.CanJumpToPreviousSong, options: {}, style: { color: COLOR_WHITE } },
+					{
+						feedbackId: Feedback.IsQueuedNextSong,
+						options: { songDelta: 'anyPrevious' },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
 			},
 			nextSong: {
 				category: 'Playback',
@@ -1356,7 +1388,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSong' },
 				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 1 } }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.CanJumpToNextSong, options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [
+					{ feedbackId: Feedback.CanJumpToNextSong, options: {}, style: { color: COLOR_WHITE } },
+					{
+						feedbackId: Feedback.IsQueuedNextSong,
+						options: { songDelta: 'anyNext' },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
 			},
 			prevSection: {
 				category: 'Playback',
@@ -1364,7 +1403,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSection' },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -1 } }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.CanJumpToPreviousSection, options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [
+					{ feedbackId: Feedback.CanJumpToPreviousSection, options: {}, style: { color: COLOR_WHITE } },
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 'anyPrevious' },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
 			},
 			nextSection: {
 				category: 'Playback',
@@ -1372,7 +1418,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'button',
 				style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSection' },
 				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 1 } }], up: [] }],
-				feedbacks: [{ feedbackId: Feedback.CanJumpToNextSection, options: {}, style: { color: COLOR_WHITE } }],
+				feedbacks: [
+					{ feedbackId: Feedback.CanJumpToNextSection, options: {}, style: { color: COLOR_WHITE } },
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 'anyNext' },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
 			},
 			toggleLoop: {
 				category: 'Playback',
