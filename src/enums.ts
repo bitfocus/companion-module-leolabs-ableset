@@ -13,6 +13,7 @@ export const enum Feedback {
 	CanJumpToPreviousSong = 'canJumpToPreviousSong',
 	CanJumpToNextSection = 'canJumpToNextSection',
 	CanJumpToPreviousSection = 'canJumpToPreviousSection',
+	SettingEqualsValue = 'settingEqualsValue',
 }
 
 /** Available actions */
@@ -34,6 +35,7 @@ export const enum Action {
 	PlayCuedSong = 'playCuedSong',
 	Pa12SetScene = 'pa12SetScene',
 	Pa12ToggleScene = 'pa12ToggleScene',
+	ToggleSetting = 'toggleSetting',
 	SetAutoplay = 'setAutoplay',
 	SetSafeMode = 'setSafeMode',
 	SetAlwaysStopOnSongEnd = 'setAlwaysStopOnSongEnd',

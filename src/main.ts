@@ -48,6 +48,29 @@ const LOOP_ICON_GREEN = '<icon:loop-green.png>'
 
 const PRESET_COUNT = 32
 
+const BOOLEAN_SETTINGS = [
+	{ id: 'autoplay', label: 'Autoplay' },
+	{ id: 'safeMode', label: 'Safe Mode' },
+	{ id: 'alwaysStopOnSongEnd', label: 'Always Stop on Song End' },
+	{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
+	{ id: 'autoLoopCurrentSection', label: 'Autoloop the Current Section' },
+	{ id: 'countIn', label: 'Count-In' },
+	{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
+]
+
+const JUMP_MODES = [
+	{ id: 'quantized', label: 'Quantized' },
+	{ id: 'end-of-section', label: 'End of Section' },
+	{ id: 'end-of-song', label: 'End of Song' },
+	{ id: 'manual', label: 'Manual' },
+]
+
+const COUNT_IN_DURATIONS = [
+	{ id: '1', label: '1 Bar' },
+	{ id: '2', label: '2 Bars' },
+	{ id: '4', label: '4 Bars' },
+]
+
 class ModuleInstance extends InstanceBase<Config> {
 	config: Config = { clientHost: '127.0.0.1', clientPort: '39052', serverHost: '127.0.0.1' }
 	oscServer: Server | null = null
@@ -320,30 +343,39 @@ class ModuleInstance extends InstanceBase<Config> {
 		//#region settings
 		server.on('/settings/autoplay', ([, value]) => {
 			this.setVariableValues({ autoplay: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/safeMode', ([, value]) => {
 			this.setVariableValues({ safeMode: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/alwaysStopOnSongEnd', ([, value]) => {
 			this.setVariableValues({ alwaysStopOnSongEnd: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/autoJumpToNextSong', ([, value]) => {
 			this.setVariableValues({ autoJumpToNextSong: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/autoLoopCurrentSection', ([, value]) => {
 			this.setVariableValues({ autoLoopCurrentSection: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/countIn', ([, value]) => {
 			this.setVariableValues({ countIn: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/countInSoloClick', ([, value]) => {
 			this.setVariableValues({ countInSoloClick: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/countInDuration', ([, value]) => {
 			this.setVariableValues({ countInDuration: Number(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/jumpMode', ([, value]) => {
 			this.setVariableValues({ jumpMode: String(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		//#endregion
 	}
@@ -624,6 +656,22 @@ class ModuleInstance extends InstanceBase<Config> {
 			//#endregion
 
 			//#region settings
+			[Action.ToggleSetting]: {
+				name: 'Toggle Setting',
+				options: [
+					{
+						id: 'setting',
+						label: 'Setting',
+						type: 'dropdown',
+						choices: BOOLEAN_SETTINGS,
+						default: 'autoplay',
+					},
+				],
+				callback: async ({ options }) => {
+					const setting = this.getVariableValue(String(options.setting)) ?? false
+					this.sendOsc([`/settings/${options.setting}`, Number(!setting)])
+				},
+			},
 			[Action.SetAutoplay]: {
 				name: 'Set Autoplay',
 				options: [
@@ -715,11 +763,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'value',
 						label: 'Count-In Duration',
 						type: 'dropdown',
-						choices: [
-							{ id: '1', label: '1 Bar' },
-							{ id: '2', label: '2 Bars' },
-							{ id: '4', label: '4 Bars' },
-						],
+						choices: COUNT_IN_DURATIONS,
 						default: '1',
 					},
 				],
@@ -732,12 +776,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'value',
 						label: 'Jump Mode',
 						type: 'dropdown',
-						choices: [
-							{ id: 'quantized', label: 'Quantized' },
-							{ id: 'end-of-section', label: 'End of Section' },
-							{ id: 'end-of-song', label: 'End of Song' },
-							{ id: 'manual', label: 'Manual' },
-						],
+						choices: JUMP_MODES,
 						default: 'quantized',
 					},
 				],
@@ -1003,7 +1042,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Can Jump to Next Song',
 				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
-					return Number(this.getVariableValue('activeSongIndex')) < this.songs.length - 1
+					const activeSongIndex = Number(this.getVariableValue('activeSongIndex') ?? -1)
+					const queuedSongIndex = Number(this.getVariableValue('queuedSongIndex') ?? -1)
+					const relevantSongIndex = queuedSongIndex !== -1 ? queuedSongIndex : activeSongIndex
+					return relevantSongIndex < this.songs.length - 1
 				},
 				options: [],
 			},
@@ -1013,7 +1055,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Can Jump to Previous Song',
 				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
-					return Number(this.getVariableValue('activeSongIndex')) > 0
+					const activeSongIndex = Number(this.getVariableValue('activeSongIndex') ?? -1)
+					const queuedSongIndex = Number(this.getVariableValue('queuedSongIndex') ?? -1)
+					const relevantSongIndex = queuedSongIndex !== -1 ? queuedSongIndex : activeSongIndex
+					return relevantSongIndex > 0
 				},
 				options: [],
 			},
@@ -1023,7 +1068,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Can Jump to Next Section',
 				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
-					return Number(this.getVariableValue('activeSectionIndex')) < this.sections.length - 1
+					const activeSectionIndex = Number(this.getVariableValue('activeSectionIndex') ?? -1)
+					const queuedSectionIndex = Number(this.getVariableValue('queuedSectionIndex') ?? -1)
+					const relevantSectionIndex = queuedSectionIndex !== -1 ? queuedSectionIndex : activeSectionIndex
+					return relevantSectionIndex < this.sections.length - 1
 				},
 				options: [],
 			},
@@ -1033,9 +1081,42 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Can Jump to Previous Section',
 				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
-					return Number(this.getVariableValue('activeSectionIndex')) > 0
+					const activeSectionIndex = Number(this.getVariableValue('activeSectionIndex') ?? -1)
+					const queuedSectionIndex = Number(this.getVariableValue('queuedSectionIndex') ?? -1)
+					const relevantSectionIndex = queuedSectionIndex !== -1 ? queuedSectionIndex : activeSectionIndex
+					return relevantSectionIndex > 0
 				},
 				options: [],
+			},
+
+			[Feedback.SettingEqualsValue]: {
+				type: 'boolean',
+				name: 'Setting Equals Value',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: ({ options }) => {
+					const value = String(this.getVariableValue(String(options.setting)))
+					return value === String(options.value)
+				},
+				options: [
+					{
+						id: 'setting',
+						label: 'Setting',
+						type: 'dropdown',
+						choices: [
+							{ id: 'autoplay', label: 'Autoplay' },
+							{ id: 'safeMode', label: 'Safe Mode' },
+							{ id: 'alwaysStopOnSongEnd', label: 'Always Stop on Song End' },
+							{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
+							{ id: 'autoLoopCurrentSection', label: 'Autoloop the Current Section' },
+							{ id: 'countIn', label: 'Count-In' },
+							{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
+							{ id: 'countInDuration', label: 'Count-In Duration' },
+							{ id: 'jumpMode', label: 'Jump Mode' },
+						],
+						default: 'autoplay',
+					},
+					{ id: 'value', label: 'Value', type: 'textinput', default: 'true', required: true },
+				],
 			},
 		})
 	}
@@ -1444,12 +1525,77 @@ class ModuleInstance extends InstanceBase<Config> {
 			},
 		}
 
+		const booleanSettingsPresets = Object.fromEntries(
+			BOOLEAN_SETTINGS.map((s) => [
+				s.id,
+				{
+					category: 'Settings',
+					name: s.label,
+					type: 'button',
+					style: { ...defaultSongStyle, text: s.label },
+					steps: [{ down: [{ actionId: Action.ToggleSetting, options: { setting: s.id } }], up: [] }],
+					feedbacks: [
+						{
+							feedbackId: Feedback.SettingEqualsValue,
+							options: { setting: s.id, value: 'true' },
+							style: { bgcolor: COLOR_GREEN_500 },
+						},
+					],
+				} as CompanionButtonPresetDefinition,
+			])
+		)
+
+		const countInDurationSettingsPresets = Object.fromEntries(
+			COUNT_IN_DURATIONS.map((s) => [
+				s.id,
+				{
+					category: 'Settings',
+					name: `Count-In Duration / ${s.label}`,
+					type: 'button',
+					style: { ...defaultSongStyle, text: s.label },
+					previewStyle: { ...defaultSongStyle, text: `Count-In\n${s.label}` },
+					steps: [{ down: [{ actionId: Action.SetCountInDuration, options: { value: s.id } }], up: [] }],
+					feedbacks: [
+						{
+							feedbackId: Feedback.SettingEqualsValue,
+							options: { setting: 'countInDuration', value: s.id },
+							style: { bgcolor: COLOR_GREEN_500 },
+						},
+					],
+				} as CompanionButtonPresetDefinition,
+			])
+		)
+
+		const jumpModeSettingsPresets = Object.fromEntries(
+			JUMP_MODES.map((s) => [
+				s.id,
+				{
+					category: 'Settings',
+					name: `Jump Mode / ${s.label}`,
+					type: 'button',
+					style: { ...defaultSongStyle, text: s.label },
+					previewStyle: { ...defaultSongStyle, text: `Jump:\n${s.label}` },
+					steps: [{ down: [{ actionId: Action.SetJumpMode, options: { value: s.id } }], up: [] }],
+					feedbacks: [
+						{
+							feedbackId: Feedback.SettingEqualsValue,
+							options: { setting: 'jumpMode', value: s.id },
+							style: { bgcolor: COLOR_GREEN_500 },
+						},
+					],
+				} as CompanionButtonPresetDefinition,
+			])
+		)
+
 		this.setPresetDefinitions({
 			...songPresets,
 			...sectionPresets,
 			...nextPrevSongs,
 			...nextPrevSections,
 			...playbackPresets,
+			...booleanSettingsPresets,
+			...countInDurationSettingsPresets,
+			...jumpModeSettingsPresets,
 		})
 	}
 }
