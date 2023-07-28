@@ -165,6 +165,36 @@ class ModuleInstance extends InstanceBase<Config> {
 	/** Waits until all new OSC values are received before running updates */
 	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 50)
 
+	updateNextPreviousSongs = debounce(() => {
+		const currentIndex = Number(this.getVariableValue('activeSongIndex'))
+
+		this.setVariableValues({
+			nextSongName: this.songs[currentIndex + 1],
+			nextSongName2: this.songs[currentIndex + 2],
+			nextSongName3: this.songs[currentIndex + 3],
+			nextSongName4: this.songs[currentIndex + 4],
+			previousSongName: this.songs[currentIndex - 1],
+			previousSongName2: this.songs[currentIndex - 2],
+			previousSongName3: this.songs[currentIndex - 3],
+			previousSongName4: this.songs[currentIndex - 4],
+		})
+	}, 50)
+
+	updateNextPreviousSections = debounce(() => {
+		const currentIndex = Number(this.getVariableValue('activeSectionIndex'))
+
+		this.setVariableValues({
+			nextSectionName: this.sections[currentIndex + 1],
+			nextSectionName2: this.sections[currentIndex + 2],
+			nextSectionName3: this.sections[currentIndex + 3],
+			nextSectionName4: this.sections[currentIndex + 4],
+			previousSectionName: this.sections[currentIndex - 1],
+			previousSectionName2: this.sections[currentIndex - 2],
+			previousSectionName3: this.sections[currentIndex - 3],
+			previousSectionName4: this.sections[currentIndex - 4],
+		})
+	}, 50)
+
 	initOscListeners(server: Server) {
 		//#region global
 		server.on('/global/beatsPosition', ([, beats]) => {
@@ -196,6 +226,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')]))
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
+			this.updateNextPreviousSongs()
 		})
 		server.on('/setlist/sections', ([, ...sections]) => {
 			this.sections = sections as string[]
@@ -203,24 +234,33 @@ class ModuleInstance extends InstanceBase<Config> {
 				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]))
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSection, Feedback.CanJumpToPreviousSection)
+			this.updateNextPreviousSections()
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {
-			this.setVariableValues({ activeSongName: String(activeSongName) })
+			this.setVariableValues({ activeSongName: String(activeSongName ?? '') })
 		})
 		server.on('/setlist/activeSongIndex', ([, activeSongIndex]) => {
 			this.setVariableValues({ activeSongIndex: Number(activeSongIndex ?? -1) })
-			this.debouncedCheckFeedbacks(Feedback.IsCurrentSong, Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
+			this.debouncedCheckFeedbacks(
+				Feedback.IsCurrentSong,
+				Feedback.CanJumpToNextSong,
+				Feedback.CanJumpToPreviousSong,
+				Feedback.IsQueuedNextSong
+			)
+			this.updateNextPreviousSongs()
 		})
 		server.on('/setlist/activeSectionName', ([, activeSectionName]) => {
-			this.setVariableValues({ activeSectionName: String(activeSectionName) })
+			this.setVariableValues({ activeSectionName: String(activeSectionName ?? '') })
 		})
 		server.on('/setlist/activeSectionIndex', ([, activeSectionIndex]) => {
 			this.setVariableValues({ activeSectionIndex: Number(activeSectionIndex ?? -1) })
 			this.debouncedCheckFeedbacks(
 				Feedback.IsCurrentSection,
 				Feedback.CanJumpToNextSection,
-				Feedback.CanJumpToPreviousSection
+				Feedback.CanJumpToPreviousSection,
+				Feedback.IsQueuedNextSection
 			)
+			this.updateNextPreviousSections()
 		})
 		server.on('/setlist/queuedName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
@@ -233,7 +273,12 @@ class ModuleInstance extends InstanceBase<Config> {
 				queuedSongIndex: Number(queuedSong),
 				queuedSectionIndex: Number(queuedSection),
 			})
-			this.debouncedCheckFeedbacks(Feedback.IsQueuedSong, Feedback.IsQueuedSection)
+			this.debouncedCheckFeedbacks(
+				Feedback.IsQueuedSong,
+				Feedback.IsQueuedSection,
+				Feedback.IsQueuedNextSong,
+				Feedback.IsQueuedNextSection
+			)
 		})
 		server.on('/setlist/nextSongName', ([, nextSongName]) => {
 			this.setVariableValues({ nextSongName: String(nextSongName) })
@@ -466,8 +511,24 @@ class ModuleInstance extends InstanceBase<Config> {
 						max: 10,
 						default: 1,
 					},
+					{
+						id: 'force',
+						type: 'dropdown',
+						label: 'Force Jump',
+						tooltip: 'Ignores the current queued song',
+						choices: [
+							{ id: 'false', label: 'Disabled' },
+							{ id: 'true', label: 'Enabled' },
+						],
+						default: 'false',
+					},
 				],
-				callback: async (event) => this.sendOsc(['/setlist/jumpBySongs', Number(event.options.steps)]),
+				callback: async (event) =>
+					this.sendOsc([
+						'/setlist/jumpBySongs',
+						Number(event.options.steps),
+						`force=${event.options.force ?? 'false'}`,
+					]),
 			},
 			[Action.JumpToSectionByNumber]: {
 				name: 'Jump to Section by Number',
@@ -502,13 +563,29 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'steps',
 						type: 'number',
 						label: 'Steps',
-						tooltip: '1 jumps to the next song, -1 jumps to the previous song',
+						tooltip: '1 jumps to the next section, -1 jumps to the previous section',
 						min: -10,
 						max: 10,
 						default: 1,
 					},
+					{
+						id: 'force',
+						type: 'dropdown',
+						label: 'Force Jump',
+						tooltip: 'Ignores the current queued section',
+						choices: [
+							{ id: 'false', label: 'Disabled' },
+							{ id: 'true', label: 'Enabled' },
+						],
+						default: 'false',
+					},
 				],
-				callback: async (event) => this.sendOsc(['/setlist/jumpBySections', Number(event.options.steps)]),
+				callback: async (event) =>
+					this.sendOsc([
+						'/setlist/jumpBySections',
+						Number(event.options.steps),
+						`force=${event.options.force ?? 'false'}`,
+					]),
 			},
 			[Action.PlayCuedSong]: {
 				name: 'Play Cued Song',
@@ -539,7 +616,6 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 				callback: async () => this.sendOsc(['/playaudio12/toggleScene']),
 			},
-
 			//#endregion
 
 			//#region settings
@@ -694,6 +770,24 @@ class ModuleInstance extends InstanceBase<Config> {
 				.fill(0)
 				.map((_, i) => ({ variableId: `section${i + 1}Name`, name: `Section ${i + 1} Name` })),
 
+			{ variableId: 'nextSongName', name: 'Next Song Name' },
+			{ variableId: 'nextSongName2', name: '2nd Next Song Name' },
+			{ variableId: 'nextSongName3', name: '3rd Next Song Name' },
+			{ variableId: 'nextSongName4', name: '4th Next Song Name' },
+			{ variableId: 'previousSongName', name: 'Previous Song Name' },
+			{ variableId: 'previousSongName2', name: '2nd Previous Song Name' },
+			{ variableId: 'previousSongName3', name: '3rd Previous Song Name' },
+			{ variableId: 'previousSongName4', name: '4th Previous Song Name' },
+
+			{ variableId: 'nextSectionName', name: 'Next Section Name' },
+			{ variableId: 'nextSectionName2', name: '2nd Next Section Name' },
+			{ variableId: 'nextSectionName3', name: '3rd Next Section Name' },
+			{ variableId: 'nextSectionName4', name: '4th Next Section Name' },
+			{ variableId: 'previousSectionName', name: 'Previous Section Name' },
+			{ variableId: 'previousSectionName2', name: '2nd Previous Section Name' },
+			{ variableId: 'previousSectionName3', name: '3rd Previous Section Name' },
+			{ variableId: 'previousSectionName4', name: '4th Previous Section Name' },
+
 			{ variableId: 'loopEnabled', name: 'Loop Enabled' },
 			{ variableId: 'loopStart', name: 'Loop Start' },
 			{ variableId: 'loopEnd', name: 'Loop End' },
@@ -827,10 +921,61 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
+			[Feedback.IsQueuedNextSong]: {
+				type: 'boolean',
+				name: 'Is Queued Next Song',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: (feedback) => {
+					const queuedSongIndex = Number(this.getVariableValue('queuedSongIndex') ?? -1)
+					const activeSongIndex = Number(this.getVariableValue('activeSongIndex') ?? -1)
+					const songIndex = activeSongIndex + Number(feedback.options.songDelta)
+					this.log('info', 'Queued song: ' + JSON.stringify({ queuedSongIndex, activeSongIndex, songIndex }))
+					return queuedSongIndex !== -1 && queuedSongIndex === songIndex
+				},
+				options: [
+					{
+						id: 'songDelta',
+						label: 'Song Delta',
+						tooltip: 'e.g. 1 for the next song, -1 for the previous song',
+						type: 'number',
+						min: -100,
+						max: 100,
+						default: 1,
+					},
+				],
+			},
+
+			[Feedback.IsQueuedNextSection]: {
+				type: 'boolean',
+				name: 'Is Queued Next Section',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: (feedback) => {
+					const queuedSectionIndex = Number(this.getVariableValue('queuedSectionIndex') ?? -1)
+					const activeSectionIndex = Number(this.getVariableValue('activeSectionIndex') ?? -1)
+					const sectionIndex = activeSectionIndex + Number(feedback.options.sectionDelta)
+					this.log(
+						'info',
+						'Queued section: ' + JSON.stringify({ queuedSectionIndex, activeSectionIndex, sectionIndex })
+					)
+					return queuedSectionIndex !== -1 && queuedSectionIndex === sectionIndex
+				},
+				options: [
+					{
+						id: 'sectionDelta',
+						label: 'Section Delta',
+						tooltip: 'e.g. 1 for the next section, -1 for the previous section',
+						type: 'number',
+						min: -100,
+						max: 100,
+						default: 1,
+					},
+				],
+			},
+
 			[Feedback.CanJumpToNextSong]: {
 				type: 'boolean',
 				name: 'Can Jump to Next Song',
-				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
 					return Number(this.getVariableValue('activeSongIndex')) < this.songs.length - 1
 				},
@@ -840,7 +985,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToPreviousSong]: {
 				type: 'boolean',
 				name: 'Can Jump to Previous Song',
-				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
 					return Number(this.getVariableValue('activeSongIndex')) > 0
 				},
@@ -850,7 +995,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToNextSection]: {
 				type: 'boolean',
 				name: 'Can Jump to Next Section',
-				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
 					return Number(this.getVariableValue('activeSectionIndex')) < this.sections.length - 1
 				},
@@ -860,7 +1005,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.CanJumpToPreviousSection]: {
 				type: 'boolean',
 				name: 'Can Jump to Previous Section',
-				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
 					return Number(this.getVariableValue('activeSectionIndex')) > 0
 				},
@@ -924,6 +1069,246 @@ class ModuleInstance extends InstanceBase<Config> {
 				} as CompanionButtonPresetDefinition,
 			])
 		)
+
+		const nextPrevSongs: CompanionPresetDefinitions = {
+			currentSong: {
+				category: 'Jump Songs',
+				name: 'Current Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `Current Song` },
+				style: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `$(AbleSet:activeSongName)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 0, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 0 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			nextSong1: {
+				category: 'Jump Songs',
+				name: 'Next Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `Next Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSongName)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 1, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 1 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			nextSong2: {
+				category: 'Jump Songs',
+				name: '2nd Next Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `2nd Next Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSongName2)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 2, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 2 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			nextSong3: {
+				category: 'Jump Songs',
+				name: '3rd Next Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `3rd Next Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSongName3)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 3, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 3 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			nextSong4: {
+				category: 'Jump Songs',
+				name: '4th Next Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `4th Next Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSongName4)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 4, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: 4 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			previousSong1: {
+				category: 'Jump Songs',
+				name: 'Previous Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `Prev Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSongName)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -1, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -1 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			previousSong2: {
+				category: 'Jump Songs',
+				name: '2nd Previous Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `2nd Prev Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSongName2)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -2, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -2 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			previousSong3: {
+				category: 'Jump Songs',
+				name: '3rd Previous Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `3rd Prev Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSongName3)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -3, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -3 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+			previousSong4: {
+				category: 'Jump Songs',
+				name: '4th Previous Song',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `4th Prev Song` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSongName4)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -4, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{ feedbackId: Feedback.IsQueuedNextSong, options: { songDelta: -4 }, style: { bgcolor: COLOR_GREEN_800 } },
+				],
+			},
+		}
+
+		const nextPrevSections: CompanionPresetDefinitions = {
+			currentSection: {
+				category: 'Jump Sections',
+				name: 'Current Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `Current Section` },
+				style: { ...defaultStyle, bgcolor: COLOR_GREEN_500, text: `$(AbleSet:activeSectionName)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 0, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 0 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			nextSection1: {
+				category: 'Jump Sections',
+				name: 'Next Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `Next Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 1, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 1 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			nextSection2: {
+				category: 'Jump Sections',
+				name: '2nd Next Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `2nd Next Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName2)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 2, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 2 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			nextSection3: {
+				category: 'Jump Sections',
+				name: '3rd Next Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `3rd Next Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName3)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 3, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 3 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			nextSection4: {
+				category: 'Jump Sections',
+				name: '4th Next Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `4th Next Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:nextSectionName4)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 4, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: 4 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			previousSection1: {
+				category: 'Jump Sections',
+				name: 'Previous Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `Prev Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -1, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: -1 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			previousSection2: {
+				category: 'Jump Sections',
+				name: '2nd Previous Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `2nd Prev Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName2)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -2, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: -2 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			previousSection3: {
+				category: 'Jump Sections',
+				name: '3rd Previous Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `3rd Prev Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName3)` },
+				steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -3, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: -3 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+			previousSection4: {
+				category: 'Jump Sections',
+				name: '4th Previous Section',
+				type: 'button',
+				previewStyle: { ...defaultStyle, text: `4th Prev Section` },
+				style: { ...defaultStyle, text: `$(AbleSet:previousSectionName4)` },
+				steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -4, force: 'true' } }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: -4 },
+						style: { bgcolor: COLOR_GREEN_800 },
+					},
+				],
+			},
+		}
 
 		const playbackPresets: CompanionPresetDefinitions = {
 			playPause: {
@@ -1003,7 +1388,13 @@ class ModuleInstance extends InstanceBase<Config> {
 			},
 		}
 
-		this.setPresetDefinitions({ ...songPresets, ...sectionPresets, ...playbackPresets })
+		this.setPresetDefinitions({
+			...songPresets,
+			...sectionPresets,
+			...nextPrevSongs,
+			...nextPrevSections,
+			...playbackPresets,
+		})
 	}
 }
 
