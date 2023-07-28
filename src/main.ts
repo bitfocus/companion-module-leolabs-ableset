@@ -208,14 +208,14 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.setVariableValues({ activeSongName: String(activeSongName) })
 		})
 		server.on('/setlist/activeSongIndex', ([, activeSongIndex]) => {
-			this.setVariableValues({ activeSongIndex: Number(activeSongIndex) })
+			this.setVariableValues({ activeSongIndex: Number(activeSongIndex ?? -1) })
 			this.debouncedCheckFeedbacks(Feedback.IsCurrentSong, Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
 		})
 		server.on('/setlist/activeSectionName', ([, activeSectionName]) => {
 			this.setVariableValues({ activeSectionName: String(activeSectionName) })
 		})
 		server.on('/setlist/activeSectionIndex', ([, activeSectionIndex]) => {
-			this.setVariableValues({ activeSectionIndex: Number(activeSectionIndex) })
+			this.setVariableValues({ activeSectionIndex: Number(activeSectionIndex ?? -1) })
 			this.debouncedCheckFeedbacks(
 				Feedback.IsCurrentSection,
 				Feedback.CanJumpToNextSection,
