@@ -33,6 +33,7 @@ const makeRange = (number: number) =>
 
 const COLOR_BLACK = combineRgb(0, 0, 0)
 const COLOR_GRAY = combineRgb(128, 128, 128)
+const COLOR_DARK_GRAY = combineRgb(80, 80, 80)
 const COLOR_WHITE = combineRgb(255, 255, 255)
 const COLOR_GREEN_500 = combineRgb(34, 197, 94)
 const COLOR_GREEN_700 = combineRgb(21, 128, 61)
@@ -235,7 +236,8 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.debouncedCheckFeedbacks(Feedback.IsInLoop, Feedback.IsInActiveLoop)
 		})
 		server.on('/global/humanPosition', ([, bars, beats]) => {
-			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}` })
+			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}`, humanPositionBeats: Number(beats) ?? 0 })
+			this.checkFeedbacks(Feedback.IsBeat)
 		})
 		server.on('/global/tempo', ([, tempo]) => {
 			this.setVariableValues({ tempo: Number(tempo) })
@@ -245,7 +247,12 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.debouncedCheckFeedbacks(Feedback.IsPlaying)
 		})
 		server.on('/global/timeSignature', ([, numerator, denominator]) => {
-			this.setVariableValues({ timeSignature: `${numerator}/${denominator}` })
+			this.setVariableValues({
+				timeSignature: `${numerator}/${denominator}`,
+				timeSignatureNumerator: Number(numerator),
+				timeSignatureDenominator: Number(denominator),
+			})
+			this.debouncedCheckFeedbacks(Feedback.BeatIsInBar)
 		})
 		//#endregion
 
@@ -797,9 +804,12 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.setVariableDefinitions([
 			{ variableId: 'beatsPosition', name: 'Playhead Position in Beats' },
 			{ variableId: 'humanPosition', name: 'Playhead Position in Bars.Beats' },
+			{ variableId: 'humanPositionBeats', name: 'Beats Part of the Playhead Position' },
 			{ variableId: 'tempo', name: 'Current Tempo' },
 			{ variableId: 'isPlaying', name: 'Is Playing' },
 			{ variableId: 'timeSignature', name: 'Time Signature' },
+			{ variableId: 'timeSignatureNumerator', name: 'Time Signature Numerator' },
+			{ variableId: 'timeSignatureDenominator', name: 'Time Signature Denominator' },
 
 			{ variableId: 'setlistName', name: 'Setlist Name' },
 			{ variableId: 'activeSongName', name: 'Active Song Name' },
@@ -867,6 +877,48 @@ class ModuleInstance extends InstanceBase<Config> {
 					return Boolean(this.getVariableValue('isPlaying'))
 				},
 				options: [],
+			},
+
+			[Feedback.IsBeat]: {
+				type: 'boolean',
+				name: 'Current Beat Equals',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: ({ options }) => {
+					return this.getVariableValue('humanPositionBeats') === Number(options.beat)
+				},
+				options: [
+					{
+						id: 'beat',
+						label: 'Beat',
+						type: 'number',
+						min: 1,
+						max: 16,
+						step: 1,
+						default: 1,
+						required: true,
+					},
+				],
+			},
+
+			[Feedback.BeatIsInBar]: {
+				type: 'boolean',
+				name: 'Beat is in Bar',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: ({ options }) => {
+					return Number(options.beat) <= Number(this.getVariableValue('timeSignatureNumerator'))
+				},
+				options: [
+					{
+						id: 'beat',
+						label: 'Beat',
+						type: 'number',
+						min: 1,
+						max: 16,
+						step: 1,
+						default: 1,
+						required: true,
+					},
+				],
 			},
 
 			[Feedback.IsInLoop]: {
@@ -1559,7 +1611,50 @@ class ModuleInstance extends InstanceBase<Config> {
 					},
 				],
 			},
+			playbackPosition: {
+				category: 'Playback',
+				name: 'Playback Position',
+				type: 'button',
+				style: { ...defaultStyle, text: '$(AbleSet:humanPosition)' },
+				steps: [],
+				feedbacks: [],
+			},
+			playbackPositionBeats: {
+				category: 'Playback',
+				name: 'Current Beat',
+				type: 'button',
+				style: { ...defaultStyle, size: 'auto', text: '$(AbleSet:humanPositionBeats)' },
+				previewStyle: { ...defaultSongStyle, text: 'Beat\n1/2/3/4' },
+				steps: [],
+				feedbacks: [],
+			},
+			timeSignature: {
+				category: 'Playback',
+				name: 'Time Signature',
+				type: 'button',
+				style: { ...defaultStyle, text: '$(AbleSet:timeSignature)' },
+				steps: [],
+				feedbacks: [],
+			},
 		}
+
+		const beatPresets = Object.fromEntries(
+			makeRange(8).map((i) => [
+				`beat${i + 1}`,
+				{
+					category: 'Visual Metronome',
+					name: `Beat ${i + 1}`,
+					type: 'button',
+					style: { ...defaultStyle, size: 'auto', color: COLOR_DARK_GRAY, text: `${i + 1}` },
+					previewStyle: { ...defaultStyle, size: 'auto', text: `${i + 1}` },
+					steps: [],
+					feedbacks: [
+						{ feedbackId: Feedback.BeatIsInBar, options: { beat: i + 1 }, style: { color: COLOR_WHITE } },
+						{ feedbackId: Feedback.IsBeat, options: { beat: i + 1 }, style: { bgcolor: COLOR_GREEN_500 } },
+					],
+				} as CompanionButtonPresetDefinition,
+			]),
+		)
 
 		const booleanSettingsPresets = Object.fromEntries(
 			BOOLEAN_SETTINGS.map((s) => [
@@ -1657,6 +1752,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			...nextPrevSongs,
 			...nextPrevSections,
 			...playbackPresets,
+			...beatPresets,
 			...booleanSettingsPresets,
 			...countInDurationSettingsPresets,
 			...jumpModeSettingsPresets,

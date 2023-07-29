@@ -1,6 +1,8 @@
 /** Available feedbacks */
 export const enum Feedback {
 	IsPlaying = 'isPlaying',
+	IsBeat = 'isBeat',
+	BeatIsInBar = 'beatIsInBar',
 	IsInLoop = 'isInLoop',
 	IsInActiveLoop = 'isInActiveLoop',
 	IsCurrentSong = 'isCurrentSong',
