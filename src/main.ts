@@ -37,6 +37,7 @@ const COLOR_WHITE = combineRgb(255, 255, 255)
 const COLOR_GREEN_500 = combineRgb(34, 197, 94)
 const COLOR_GREEN_700 = combineRgb(21, 128, 61)
 const COLOR_GREEN_800 = combineRgb(22, 101, 52)
+const COLOR_RED_700 = combineRgb(185, 28, 28)
 
 const PLAY_ICON = '<icon:play.png>'
 const PLAY_ICON_GRAY = '<icon:play-gray.png>'
@@ -338,9 +339,11 @@ class ModuleInstance extends InstanceBase<Config> {
 		//#region PlayAUDIO12
 		server.on('/playaudio12/isConnected', ([, connected]) => {
 			this.setVariableValues({ playAudio12Connected: Boolean(connected) })
+			this.debouncedCheckFeedbacks(Feedback.PlayAudio12IsConnected)
 		})
 		server.on('/playaudio12/scene', ([, scene]) => {
 			this.setVariableValues({ playAudio12Scene: Number(scene) })
+			this.debouncedCheckFeedbacks(Feedback.PlayAudio12Scene)
 		})
 		//#endregion
 
@@ -1120,6 +1123,37 @@ class ModuleInstance extends InstanceBase<Config> {
 					{ id: 'value', label: 'Value', type: 'textinput', default: 'true', required: true },
 				],
 			},
+
+			[Feedback.PlayAudio12IsConnected]: {
+				type: 'boolean',
+				name: 'PlayAUDIO12 Connected',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: () => {
+					return this.getVariableValue('playAudio12Connected') === true
+				},
+				options: [],
+			},
+
+			[Feedback.PlayAudio12Scene]: {
+				type: 'boolean',
+				name: 'Setting Equals Value',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: ({ options }) => {
+					return this.getVariableValue('playAudio12Scene') === options.scene
+				},
+				options: [
+					{
+						id: 'scene',
+						label: 'Scene',
+						type: 'dropdown',
+						choices: [
+							{ id: 1, label: 'Scene A' },
+							{ id: 2, label: 'Scene B' },
+						],
+						default: 1,
+					},
+				],
+			},
 		})
 	}
 
@@ -1589,6 +1623,34 @@ class ModuleInstance extends InstanceBase<Config> {
 			]),
 		)
 
+		const playAudio12: CompanionPresetDefinitions = {
+			playAudio12: {
+				category: 'PlayAUDIO12',
+				name: 'PlayAUDIO12 Scene',
+				type: 'button',
+				previewStyle: { ...defaultSongStyle, text: `PA12` },
+				style: { ...defaultSongStyle, color: COLOR_GRAY, text: `PA12\nN/A` },
+				steps: [{ down: [{ actionId: Action.Pa12ToggleScene, options: {} }], up: [] }],
+				feedbacks: [
+					{
+						feedbackId: Feedback.PlayAudio12IsConnected,
+						options: {},
+						style: { color: COLOR_WHITE, text: `PA12\nN/A` },
+					},
+					{
+						feedbackId: Feedback.PlayAudio12Scene,
+						options: { scene: 1 },
+						style: { bgcolor: COLOR_GREEN_800, text: `PA12\nScene A` },
+					},
+					{
+						feedbackId: Feedback.PlayAudio12Scene,
+						options: { scene: 2 },
+						style: { bgcolor: COLOR_RED_700, text: `PA12\nScene B` },
+					},
+				],
+			},
+		}
+
 		this.setPresetDefinitions({
 			...songPresets,
 			...sectionPresets,
@@ -1598,6 +1660,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			...booleanSettingsPresets,
 			...countInDurationSettingsPresets,
 			...jumpModeSettingsPresets,
+			...playAudio12,
 		})
 	}
 }

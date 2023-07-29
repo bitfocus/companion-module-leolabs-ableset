@@ -14,6 +14,8 @@ export const enum Feedback {
 	CanJumpToNextSection = 'canJumpToNextSection',
 	CanJumpToPreviousSection = 'canJumpToPreviousSection',
 	SettingEqualsValue = 'settingEqualsValue',
+	PlayAudio12IsConnected = 'playAudio12IsConnected',
+	PlayAudio12Scene = 'playAudio12Scene',
 }
 
 /** Available actions */
