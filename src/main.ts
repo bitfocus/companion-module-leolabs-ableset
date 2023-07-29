@@ -354,6 +354,26 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		//#endregion
 
+		//#region Timecode
+		server.on('/timecode/tc', ([, timecode]) => {
+			const tc = String(timecode)
+			this.setVariableValues({
+				timecode: tc,
+				timecodeHours: tc.substring(0, 2),
+				timecodeMinutes: tc.substring(3, 5),
+				timecodeSeconds: tc.substring(6, 8),
+				timecodeFrames: tc.substring(9, 11),
+			})
+		})
+		server.on('/timecode/fps', ([, fps]) => {
+			this.setVariableValues({ timecodeFps: String(fps) })
+		})
+		server.on('/timecode/stale', ([, stale]) => {
+			this.setVariableValues({ timecodeStale: Boolean(stale) })
+			this.debouncedCheckFeedbacks(Feedback.IsTimecodeActive)
+		})
+		//#endregion
+
 		//#region settings
 		server.on('/settings/autoplay', ([, value]) => {
 			this.setVariableValues({ autoplay: Boolean(value) })
@@ -855,6 +875,14 @@ class ModuleInstance extends InstanceBase<Config> {
 			{ variableId: 'playAudio12Connected', name: 'PlayAUDIO12 Connected' },
 			{ variableId: 'playAudio12Scene', name: 'PlayAUDIO12 Scene' },
 
+			{ variableId: 'timecode', name: 'Timecode' },
+			{ variableId: 'timecodeHours', name: 'Timecode Hours' },
+			{ variableId: 'timecodeMinutes', name: 'Timecode Minutes' },
+			{ variableId: 'timecodeSeconds', name: 'Timecode Seconds' },
+			{ variableId: 'timecodeFrames', name: 'Timecode Frames' },
+			{ variableId: 'timecodeFps', name: 'Timecode FPS' },
+			{ variableId: 'timecodeStale', name: 'Timecode Stale' },
+
 			{ variableId: 'autoplay', name: 'Autoplay' },
 			{ variableId: 'safeMode', name: 'Safe Mode' },
 			{ variableId: 'alwaysStopOnSongEnd', name: 'Always Stop on Song End' },
@@ -1179,7 +1207,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			[Feedback.PlayAudio12IsConnected]: {
 				type: 'boolean',
 				name: 'PlayAUDIO12 Connected',
-				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
 					return this.getVariableValue('playAudio12Connected') === true
 				},
@@ -1188,10 +1216,32 @@ class ModuleInstance extends InstanceBase<Config> {
 
 			[Feedback.PlayAudio12Scene]: {
 				type: 'boolean',
-				name: 'Setting Equals Value',
-				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				name: 'PlayAUDIO12 Scene Equals Value',
+				defaultStyle: { bgcolor: COLOR_GREEN_800 },
 				callback: ({ options }) => {
 					return this.getVariableValue('playAudio12Scene') === options.scene
+				},
+				options: [
+					{
+						id: 'scene',
+						label: 'Scene',
+						type: 'dropdown',
+						choices: [
+							{ id: 1, label: 'Scene A' },
+							{ id: 2, label: 'Scene B' },
+						],
+						default: 1,
+					},
+				],
+			},
+
+			[Feedback.IsTimecodeActive]: {
+				type: 'boolean',
+				name: 'Timecode is Active',
+				defaultStyle: { color: COLOR_WHITE },
+				callback: () => {
+					const stale = this.getVariableValue('timecodeStale')
+					return typeof stale !== 'undefined' && !stale
 				},
 				options: [
 					{
@@ -1718,7 +1768,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			]),
 		)
 
-		const playAudio12: CompanionPresetDefinitions = {
+		const playAudio12Presets: CompanionPresetDefinitions = {
 			playAudio12: {
 				category: 'PlayAUDIO12',
 				name: 'PlayAUDIO12 Scene',
@@ -1746,17 +1796,89 @@ class ModuleInstance extends InstanceBase<Config> {
 			},
 		}
 
+		const timecodePresets: CompanionPresetDefinitions = {
+			timecodeHours: {
+				category: 'LTC Timecode',
+				name: 'Timecode Hours',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '30', text: `HH` },
+				style: { ...defaultStyle, color: COLOR_GRAY, size: '44', text: `$(AbleSet:timecodeHours)` },
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+			timecodeMinutes: {
+				category: 'LTC Timecode',
+				name: 'Timecode Minutes',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '30', text: `MM` },
+				style: { ...defaultStyle, color: COLOR_GRAY, size: '44', text: `$(AbleSet:timecodeMinutes)` },
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+			timecodeSeconds: {
+				category: 'LTC Timecode',
+				name: 'Timecode Seconds',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '30', text: `SS` },
+				style: { ...defaultStyle, color: COLOR_GRAY, size: '44', text: `$(AbleSet:timecodeSeconds)` },
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+			timecodeFrames: {
+				category: 'LTC Timecode',
+				name: 'Timecode Frames',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '30', text: `FF` },
+				style: { ...defaultStyle, color: COLOR_GRAY, size: '44', text: `$(AbleSet:timecodeFrames)` },
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+			timecode: {
+				category: 'LTC Timecode',
+				name: 'Timecode',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '18', text: 'HH:MM:SS:FF' },
+				style: { ...defaultStyle, color: COLOR_GRAY, size: '24', text: `$(AbleSet:timecode)` },
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+			timecodeMinutesSeconds: {
+				category: 'LTC Timecode',
+				name: 'Timecode Minutes and Seconds',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '18', text: 'MM:SS' },
+				style: {
+					...defaultStyle,
+					color: COLOR_GRAY,
+					size: '24',
+					text: `$(AbleSet:timecodeMinutes):$(AbleSet:timecodeSeconds)`,
+				},
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+			timecodeFps: {
+				category: 'LTC Timecode',
+				name: 'Timecode FPS',
+				type: 'button',
+				previewStyle: { ...defaultStyle, size: '24', text: `30 FPS` },
+				style: { ...defaultStyle, color: COLOR_GRAY, size: '24', text: `$(AbleSet:timecodeFps) FPS` },
+				feedbacks: [{ feedbackId: Feedback.IsTimecodeActive, options: {}, style: { color: COLOR_WHITE } }],
+				steps: [],
+			},
+		}
+
 		this.setPresetDefinitions({
 			...songPresets,
 			...sectionPresets,
 			...nextPrevSongs,
 			...nextPrevSections,
 			...playbackPresets,
+			...playAudio12Presets,
+			...timecodePresets,
 			...beatPresets,
 			...booleanSettingsPresets,
 			...countInDurationSettingsPresets,
 			...jumpModeSettingsPresets,
-			...playAudio12,
 		})
 	}
 }

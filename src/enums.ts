@@ -18,6 +18,7 @@ export const enum Feedback {
 	SettingEqualsValue = 'settingEqualsValue',
 	PlayAudio12IsConnected = 'playAudio12IsConnected',
 	PlayAudio12Scene = 'playAudio12Scene',
+	IsTimecodeActive = 'isTimecodeActive',
 }
 
 /** Available actions */
