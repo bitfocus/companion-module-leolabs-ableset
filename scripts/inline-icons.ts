@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 const iconPath = join(__dirname, '..', 'icons')
-const mainPath = join(__dirname, '..', 'dist', 'main.js')
+const mainPath = join(__dirname, '..', 'dist', 'icons.js')
 
 let mainCode = readFileSync(mainPath, 'utf-8')
 const matches = mainCode.matchAll(/\<icon:(.+?)\>/g)
