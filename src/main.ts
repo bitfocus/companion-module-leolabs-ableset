@@ -8,6 +8,7 @@ import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_WHITE } from './utils/colors'
 import { debounce, debounceGather } from './utils/debounce'
 import { makeRange } from './utils/range'
 import { variables } from './variables'
+import { getProgressIcon } from './icons'
 
 interface Config {
 	/** The host registered in AbleSet for updates */
@@ -138,7 +139,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	/** Waits until all new OSC values are received before running updates */
-	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 50)
+	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 10)
 
 	updateSongs = debounce(() => {
 		const currentIndex = this.activeSongIndex
@@ -900,49 +901,117 @@ class ModuleInstance extends InstanceBase<Config> {
 			},
 
 			[Feedback.SongProgress]: {
-				type: 'boolean',
-				name: 'Song Progress is at Least',
-				defaultStyle: {},
+				type: 'advanced',
+				name: 'Song Progress',
 				callback: ({ options }) => {
 					const activeSongStart = Number(this.getVariableValue('activeSongStart') ?? 0)
 					const activeSongEnd = Number(this.getVariableValue('activeSongEnd') ?? 0)
 					const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
-					const minPercent = Number(options.minPercent) / 100
-					const percent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
-					return percent >= minPercent
+					const totalPercent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
+
+					const buttonCount = Number(options.buttonCount)
+					const buttonIndex = Number(options.buttonNumber) - 1
+					const buttonStart = buttonIndex / buttonCount
+					const buttonEnd = (buttonIndex + 1) / buttonCount
+					const percent = (totalPercent - buttonStart) / (buttonEnd - buttonStart)
+
+					const style =
+						buttonCount > 1 && options.style === 'slim'
+							? buttonIndex === 0
+								? ('slimLeft' as const)
+								: buttonIndex === buttonCount - 1
+								? ('slimRight' as const)
+								: ('slimMid' as const)
+							: ('full' as const)
+
+					return { png64: getProgressIcon(percent, style) }
 				},
 				options: [
 					{
-						id: 'minPercent',
-						label: 'Percent',
+						id: 'buttonCount',
+						label: 'Button Count',
+						tooltip: 'The total number of buttons for the progress bar',
 						type: 'number',
 						min: 0,
-						max: 100,
-						default: 50,
+						max: 32,
+						default: 4,
+					},
+					{
+						id: 'buttonNumber',
+						label: 'Button Number',
+						tooltip: 'The number of the button in the progress bar',
+						type: 'number',
+						min: 0,
+						max: 32,
+						default: 4,
+					},
+					{
+						id: 'style',
+						label: 'Style',
+						type: 'dropdown',
+						choices: [
+							{ id: 'full', label: 'Full' },
+							{ id: 'slim', label: 'Slim' },
+						],
+						default: 'full',
 					},
 				],
 			},
 
 			[Feedback.SectionProgress]: {
-				type: 'boolean',
-				name: 'Section Progress is at Least',
-				defaultStyle: {},
+				type: 'advanced',
+				name: 'Section Progress Background',
 				callback: ({ options }) => {
 					const activeSongStart = Number(this.getVariableValue('activeSectionStart') ?? 0)
 					const activeSongEnd = Number(this.getVariableValue('activeSectionEnd') ?? 0)
 					const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
-					const minPercent = Number(options.minPercent) / 100
-					const percent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
-					return percent >= minPercent
+					const totalPercent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
+
+					const buttonCount = Number(options.buttonCount)
+					const buttonIndex = Number(options.buttonNumber) - 1
+					const buttonStart = buttonIndex / buttonCount
+					const buttonEnd = (buttonIndex + 1) / buttonCount
+					const percent = (totalPercent - buttonStart) / (buttonEnd - buttonStart)
+
+					const style =
+						buttonCount > 1 && options.style === 'slim'
+							? buttonIndex === 0
+								? ('slimLeft' as const)
+								: buttonIndex === buttonCount - 1
+								? ('slimRight' as const)
+								: ('slimMid' as const)
+							: ('full' as const)
+
+					return { png64: getProgressIcon(percent, style) }
 				},
 				options: [
 					{
-						id: 'minPercent',
-						label: 'Percent',
+						id: 'buttonCount',
+						label: 'Button Count',
+						tooltip: 'The total number of buttons for the progress bar',
 						type: 'number',
 						min: 0,
-						max: 100,
-						default: 50,
+						max: 32,
+						default: 4,
+					},
+					{
+						id: 'buttonNumber',
+						label: 'Button Number',
+						tooltip: 'The number of the button in the progress bar',
+						type: 'number',
+						min: 0,
+						max: 32,
+						default: 1,
+					},
+					{
+						id: 'style',
+						label: 'Style',
+						type: 'dropdown',
+						choices: [
+							{ id: 'full', label: 'Full' },
+							{ id: 'slim', label: 'Slim' },
+						],
+						default: 'full',
 					},
 				],
 			},

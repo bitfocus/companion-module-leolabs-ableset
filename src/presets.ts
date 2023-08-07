@@ -20,15 +20,7 @@ import {
 	LOOP_ICON_GRAY,
 	LOOP_ICON,
 	LOOP_ICON_GREEN,
-	PROGRESS_0,
-	PROGRESS_1,
-	PROGRESS_2,
-	PROGRESS_3,
-	PROGRESS_4,
-	PROGRESS_5,
-	PROGRESS_6,
-	PROGRESS_7,
-	PROGRESS_8,
+	PROGRESS,
 } from './icons'
 
 const defaultSongStyle = { bgcolor: COLOR_BLACK, color: COLOR_WHITE, size: '14' } as const
@@ -641,6 +633,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 const makeProgressPresets = (
 	buttonCount: number,
 	feedbackId: Feedback.SongProgress | Feedback.SectionProgress,
+	style: 'full' | 'slim',
 ): CompanionPresetDefinitions => {
 	const category = feedbackId === Feedback.SongProgress ? 'Song Progress' : 'Section Progress'
 
@@ -648,27 +641,33 @@ const makeProgressPresets = (
 		makeRange(buttonCount).map((i) => {
 			const buttonNumber = i + 1
 			const buttonText = `${buttonNumber}/${buttonCount}`
-			const percent = 100 * ((buttonNumber - 1) / buttonCount)
-			const step = 100 / 8 / buttonCount
+
+			const previewBackground =
+				style === 'slim'
+					? buttonNumber === 1
+						? PROGRESS.slimLeft[72]
+						: buttonNumber === buttonCount
+						? PROGRESS.slimRight[72]
+						: PROGRESS.slimMid[72]
+					: undefined
 
 			return [
-				`${feedbackId}${buttonNumber}${buttonCount}`,
+				`${feedbackId}${style}${buttonNumber}${buttonCount}`,
 				{
 					category,
 					name: `${category} (${buttonText})`,
 					type: 'button',
-					previewStyle: { ...defaultStyle, size: '30', bgcolor: COLOR_GREEN_800, text: `${buttonText}` },
-					style: { ...defaultStyle, bgcolor: COLOR_GREEN_800, png64: PROGRESS_0, text: '' },
+					previewStyle: {
+						...defaultStyle,
+						size: '30',
+						bgcolor: COLOR_GREEN_800,
+						text: `${buttonText}`,
+						png64: previewBackground,
+					},
+					style: { ...defaultStyle, bgcolor: COLOR_GREEN_800, text: '' },
 					feedbacks: [
 						{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN_700 } },
-						{ feedbackId, options: { minPercent: percent + step * 1 }, style: { png64: PROGRESS_1 } },
-						{ feedbackId, options: { minPercent: percent + step * 2 }, style: { png64: PROGRESS_2 } },
-						{ feedbackId, options: { minPercent: percent + step * 3 }, style: { png64: PROGRESS_3 } },
-						{ feedbackId, options: { minPercent: percent + step * 4 }, style: { png64: PROGRESS_4 } },
-						{ feedbackId, options: { minPercent: percent + step * 5 }, style: { png64: PROGRESS_5 } },
-						{ feedbackId, options: { minPercent: percent + step * 6 }, style: { png64: PROGRESS_6 } },
-						{ feedbackId, options: { minPercent: percent + step * 7 }, style: { png64: PROGRESS_7 } },
-						{ feedbackId, options: { minPercent: percent + step * 8 }, style: { png64: PROGRESS_8 } },
+						{ feedbackId, options: { buttonCount, buttonNumber, style } },
 					],
 					steps: [],
 				} satisfies CompanionButtonPresetDefinition,
@@ -678,14 +677,20 @@ const makeProgressPresets = (
 }
 
 const progressPresets = {
-	...makeProgressPresets(1, Feedback.SongProgress),
-	...makeProgressPresets(2, Feedback.SongProgress),
-	...makeProgressPresets(4, Feedback.SongProgress),
-	...makeProgressPresets(8, Feedback.SongProgress),
-	...makeProgressPresets(1, Feedback.SectionProgress),
-	...makeProgressPresets(2, Feedback.SectionProgress),
-	...makeProgressPresets(4, Feedback.SectionProgress),
-	...makeProgressPresets(8, Feedback.SectionProgress),
+	...makeProgressPresets(1, Feedback.SongProgress, 'full'),
+	...makeProgressPresets(2, Feedback.SongProgress, 'full'),
+	...makeProgressPresets(4, Feedback.SongProgress, 'full'),
+	...makeProgressPresets(8, Feedback.SongProgress, 'full'),
+	...makeProgressPresets(2, Feedback.SongProgress, 'slim'),
+	...makeProgressPresets(4, Feedback.SongProgress, 'slim'),
+	...makeProgressPresets(8, Feedback.SongProgress, 'slim'),
+	...makeProgressPresets(1, Feedback.SectionProgress, 'full'),
+	...makeProgressPresets(2, Feedback.SectionProgress, 'full'),
+	...makeProgressPresets(4, Feedback.SectionProgress, 'full'),
+	...makeProgressPresets(8, Feedback.SectionProgress, 'full'),
+	...makeProgressPresets(2, Feedback.SectionProgress, 'slim'),
+	...makeProgressPresets(4, Feedback.SectionProgress, 'slim'),
+	...makeProgressPresets(8, Feedback.SectionProgress, 'slim'),
 }
 
 export const presets: CompanionPresetDefinitions = {
