@@ -7,6 +7,8 @@ export const enum Feedback {
 	IsInActiveLoop = 'isInActiveLoop',
 	IsCurrentSong = 'isCurrentSong',
 	IsCurrentSection = 'isCurrentSection',
+	SongProgress = 'songProgress',
+	SectionProgress = 'sectionProgress',
 	IsQueuedSong = 'isQueuedSong',
 	IsQueuedNextSong = 'isQueuedNextSong',
 	IsQueuedSection = 'isQueuedSection',

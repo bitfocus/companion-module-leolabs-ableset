@@ -48,6 +48,16 @@ const LOOP_ICON = '<icon:loop.png>'
 const LOOP_ICON_GRAY = '<icon:loop-gray.png>'
 const LOOP_ICON_GREEN = '<icon:loop-green.png>'
 
+const PROGRESS_0 = '<icon:progress/0.png>'
+const PROGRESS_1 = '<icon:progress/1.png>'
+const PROGRESS_2 = '<icon:progress/2.png>'
+const PROGRESS_3 = '<icon:progress/3.png>'
+const PROGRESS_4 = '<icon:progress/4.png>'
+const PROGRESS_5 = '<icon:progress/5.png>'
+const PROGRESS_6 = '<icon:progress/6.png>'
+const PROGRESS_7 = '<icon:progress/7.png>'
+const PROGRESS_8 = '<icon:progress/8.png>'
+
 const SONG_PRESET_COUNT = 64
 const SECTION_PRESET_COUNT = 32
 
@@ -234,7 +244,12 @@ class ModuleInstance extends InstanceBase<Config> {
 		//#region global
 		server.on('/global/beatsPosition', ([, beats]) => {
 			this.setVariableValues({ beatsPosition: Number(beats) })
-			this.debouncedCheckFeedbacks(Feedback.IsInLoop, Feedback.IsInActiveLoop)
+			this.debouncedCheckFeedbacks(
+				Feedback.IsInLoop,
+				Feedback.IsInActiveLoop,
+				Feedback.SongProgress,
+				Feedback.SectionProgress,
+			)
 		})
 		server.on('/global/humanPosition', ([, bars, beats]) => {
 			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}`, humanPositionBeats: Number(beats) ?? 0 })
@@ -293,6 +308,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.IsQueuedNextSong,
 			)
 		})
+		server.on('/setlist/activeSongStart', ([, activeSongStart]) => {
+			this.setVariableValues({ activeSongStart: Number(activeSongStart) })
+			this.debouncedCheckFeedbacks(Feedback.SongProgress)
+		})
+		server.on('/setlist/activeSongEnd', ([, activeSongEnd]) => {
+			this.setVariableValues({ activeSongEnd: Number(activeSongEnd) })
+			this.debouncedCheckFeedbacks(Feedback.SongProgress)
+		})
 		server.on('/setlist/activeSectionName', ([, activeSectionName]) => {
 			this.activeSectionName = String(activeSectionName ?? '')
 			this.updateSections()
@@ -306,6 +329,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.CanJumpToPreviousSection,
 				Feedback.IsQueuedNextSection,
 			)
+		})
+		server.on('/setlist/activeSectionStart', ([, activeSectionStart]) => {
+			this.setVariableValues({ activeSectionStart: Number(activeSectionStart) })
+			this.debouncedCheckFeedbacks(Feedback.SectionProgress)
+		})
+		server.on('/setlist/activeSectionEnd', ([, activeSectionEnd]) => {
+			this.setVariableValues({ activeSectionEnd: Number(activeSectionEnd) })
+			this.debouncedCheckFeedbacks(Feedback.SectionProgress)
 		})
 		server.on('/setlist/queuedName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
@@ -837,11 +868,15 @@ class ModuleInstance extends InstanceBase<Config> {
 			{ variableId: 'setlistName', name: 'Setlist Name' },
 			{ variableId: 'activeSongName', name: 'Active Song Name' },
 			{ variableId: 'activeSongIndex', name: 'Active Song Index' },
+			{ variableId: 'activeSongStart', name: 'Active Song Start' },
+			{ variableId: 'activeSongEnd', name: 'Active Song End' },
 			{ variableId: 'queuedSongName', name: 'Queued Song Name' },
 			{ variableId: 'queuedSongIndex', name: 'Queued Song Index' },
 
 			{ variableId: 'activeSectionName', name: 'Active Section Name' },
 			{ variableId: 'activeSectionIndex', name: 'Active Section Index' },
+			{ variableId: 'activeSectionStart', name: 'Active Section Start' },
+			{ variableId: 'activeSectionEnd', name: 'Active Section End' },
 			{ variableId: 'queuedSectionName', name: 'Queued Section Name' },
 			{ variableId: 'queuedSectionIndex', name: 'Queued Section Index' },
 
@@ -1005,6 +1040,54 @@ class ModuleInstance extends InstanceBase<Config> {
 						min: 1,
 						max: 100,
 						default: 1,
+					},
+				],
+			},
+
+			[Feedback.SongProgress]: {
+				type: 'boolean',
+				name: 'Song Progress is at Least',
+				defaultStyle: {},
+				callback: ({ options }) => {
+					const activeSongStart = Number(this.getVariableValue('activeSongStart') ?? 0)
+					const activeSongEnd = Number(this.getVariableValue('activeSongEnd') ?? 0)
+					const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
+					const minPercent = Number(options.minPercent) / 100
+					const percent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
+					return percent >= minPercent
+				},
+				options: [
+					{
+						id: 'minPercent',
+						label: 'Percent',
+						type: 'number',
+						min: 0,
+						max: 100,
+						default: 50,
+					},
+				],
+			},
+
+			[Feedback.SectionProgress]: {
+				type: 'boolean',
+				name: 'Section Progress is at Least',
+				defaultStyle: {},
+				callback: ({ options }) => {
+					const activeSongStart = Number(this.getVariableValue('activeSectionStart') ?? 0)
+					const activeSongEnd = Number(this.getVariableValue('activeSectionEnd') ?? 0)
+					const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
+					const minPercent = Number(options.minPercent) / 100
+					const percent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
+					return percent >= minPercent
+				},
+				options: [
+					{
+						id: 'minPercent',
+						label: 'Percent',
+						type: 'number',
+						min: 0,
+						max: 100,
+						default: 50,
 					},
 				],
 			},
@@ -1870,12 +1953,63 @@ class ModuleInstance extends InstanceBase<Config> {
 			},
 		}
 
+		const makeProgressPresets = (
+			buttonCount: number,
+			feedbackId: Feedback.SongProgress | Feedback.SectionProgress,
+		): CompanionPresetDefinitions => {
+			const category = feedbackId === Feedback.SongProgress ? 'Song Progress' : 'Section Progress'
+
+			return Object.fromEntries(
+				makeRange(buttonCount).map((i) => {
+					const buttonNumber = i + 1
+					const buttonText = `${buttonNumber}/${buttonCount}`
+					const percent = 100 * ((buttonNumber - 1) / buttonCount)
+					const step = 100 / 8 / buttonCount
+
+					return [
+						`${feedbackId}${buttonNumber}${buttonCount}`,
+						{
+							category,
+							name: `${category} (${buttonText})`,
+							type: 'button',
+							previewStyle: { ...defaultStyle, size: '30', bgcolor: COLOR_GREEN_800, text: `${buttonText}` },
+							style: { ...defaultStyle, bgcolor: COLOR_GREEN_800, png64: PROGRESS_0, text: '' },
+							feedbacks: [
+								{ feedbackId: Feedback.IsPlaying, options: {}, style: { bgcolor: COLOR_GREEN_700 } },
+								{ feedbackId, options: { minPercent: percent + step * 1 }, style: { png64: PROGRESS_1 } },
+								{ feedbackId, options: { minPercent: percent + step * 2 }, style: { png64: PROGRESS_2 } },
+								{ feedbackId, options: { minPercent: percent + step * 3 }, style: { png64: PROGRESS_3 } },
+								{ feedbackId, options: { minPercent: percent + step * 4 }, style: { png64: PROGRESS_4 } },
+								{ feedbackId, options: { minPercent: percent + step * 5 }, style: { png64: PROGRESS_5 } },
+								{ feedbackId, options: { minPercent: percent + step * 6 }, style: { png64: PROGRESS_6 } },
+								{ feedbackId, options: { minPercent: percent + step * 7 }, style: { png64: PROGRESS_7 } },
+								{ feedbackId, options: { minPercent: percent + step * 8 }, style: { png64: PROGRESS_8 } },
+							],
+							steps: [],
+						} satisfies CompanionButtonPresetDefinition,
+					]
+				}),
+			)
+		}
+
+		const progressPresets = {
+			...makeProgressPresets(1, Feedback.SongProgress),
+			...makeProgressPresets(2, Feedback.SongProgress),
+			...makeProgressPresets(4, Feedback.SongProgress),
+			...makeProgressPresets(8, Feedback.SongProgress),
+			...makeProgressPresets(1, Feedback.SectionProgress),
+			...makeProgressPresets(2, Feedback.SectionProgress),
+			...makeProgressPresets(4, Feedback.SectionProgress),
+			...makeProgressPresets(8, Feedback.SectionProgress),
+		}
+
 		this.setPresetDefinitions({
 			...songPresets,
 			...sectionPresets,
 			...nextPrevSongs,
 			...nextPrevSections,
 			...playbackPresets,
+			...progressPresets,
 			...playAudio12Presets,
 			...timecodePresets,
 			...beatPresets,
