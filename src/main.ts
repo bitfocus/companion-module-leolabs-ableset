@@ -48,7 +48,8 @@ const LOOP_ICON = '<icon:loop.png>'
 const LOOP_ICON_GRAY = '<icon:loop-gray.png>'
 const LOOP_ICON_GREEN = '<icon:loop-green.png>'
 
-const PRESET_COUNT = 32
+const SONG_PRESET_COUNT = 64
+const SECTION_PRESET_COUNT = 32
 
 const BOOLEAN_SETTINGS = [
 	{ id: 'autoplay', label: 'Autoplay' },
@@ -263,7 +264,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		server.on('/setlist/songs', ([, ...songs]) => {
 			this.songs = songs as string[]
 			this.setVariableValues(
-				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')])),
+				Object.fromEntries(makeRange(SONG_PRESET_COUNT).map((i) => [`song${i + 1}Name`, String(songs[i] ?? '')])),
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSong, Feedback.CanJumpToPreviousSong)
 			this.updateSongs()
@@ -271,7 +272,9 @@ class ModuleInstance extends InstanceBase<Config> {
 		server.on('/setlist/sections', ([, ...sections]) => {
 			this.sections = sections as string[]
 			this.setVariableValues(
-				Object.fromEntries(makeRange(PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')])),
+				Object.fromEntries(
+					makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]),
+				),
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSection, Feedback.CanJumpToPreviousSection)
 			this.updateSections()
@@ -842,10 +845,10 @@ class ModuleInstance extends InstanceBase<Config> {
 			{ variableId: 'queuedSectionName', name: 'Queued Section Name' },
 			{ variableId: 'queuedSectionIndex', name: 'Queued Section Index' },
 
-			...Array(PRESET_COUNT)
+			...Array(SONG_PRESET_COUNT)
 				.fill(0)
 				.map((_, i) => ({ variableId: `song${i + 1}Name`, name: `Song ${i + 1} Name` })),
-			...Array(PRESET_COUNT)
+			...Array(SECTION_PRESET_COUNT)
 				.fill(0)
 				.map((_, i) => ({ variableId: `section${i + 1}Name`, name: `Section ${i + 1} Name` })),
 
@@ -1264,7 +1267,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		const defaultStyle = { bgcolor: COLOR_BLACK, color: COLOR_WHITE, size: '18' } as const
 
 		const songPresets = Object.fromEntries(
-			makeRange(PRESET_COUNT).map((i) => [
+			makeRange(SONG_PRESET_COUNT).map((i) => [
 				`song${i + 1}`,
 				{
 					category: 'Songs',
@@ -1290,7 +1293,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		)
 
 		const sectionPresets = Object.fromEntries(
-			makeRange(PRESET_COUNT).map((i) => [
+			makeRange(SECTION_PRESET_COUNT).map((i) => [
 				`section${i + 1}`,
 				{
 					category: 'Sections',
