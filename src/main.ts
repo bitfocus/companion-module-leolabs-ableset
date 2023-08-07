@@ -23,8 +23,8 @@ interface Config {
 }
 
 /**
- * Returns an array of numbers from 0 to, and including the given number.
- * @example makeRange(2) // returns [0, 1, 2]
+ * Returns an array of numbers from 0 to the given number.
+ * @example makeRange(2) // returns [0, 1]
  */
 const makeRange = (number: number) =>
 	Array(number)
