@@ -139,7 +139,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	/** Waits until all new OSC values are received before running updates */
-	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 10)
+	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 30)
 
 	updateSongs = debounce(() => {
 		const currentIndex = this.activeSongIndex
@@ -867,7 +867,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Is Current Song',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
-					return Number(this.getVariableValue('activeSongIndex')) === Number(feedback.options.songNumber) - 1
+					return this.activeSongIndex === Number(feedback.options.songNumber) - 1
 				},
 				options: [
 					{
@@ -886,7 +886,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Is Current Section',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: (feedback) => {
-					return Number(this.getVariableValue('activeSectionIndex')) === Number(feedback.options.sectionNumber) - 1
+					return this.activeSectionIndex === Number(feedback.options.sectionNumber) - 1
 				},
 				options: [
 					{
