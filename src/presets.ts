@@ -767,6 +767,24 @@ const playAudio12Presets: CompanionPresetDefinitions = {
 	},
 }
 
+const ableNetPresets: CompanionPresetDefinitions = {
+	playAudio12: {
+		category: 'AbleNet',
+		name: 'Sync Playback Now',
+		type: 'button',
+		previewStyle: { ...defaultSongStyle, text: `Sync Playback Now` },
+		style: { ...defaultSongStyle, text: `Sync Playback Now` },
+		steps: [{ down: [{ actionId: Action.SyncPlaybackNow, options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: Feedback.IsSyncingPlayback,
+				options: {},
+				style: { bgcolor: COLOR_GREEN_700, text: `Syncing...` },
+			},
+		],
+	},
+}
+
 const timecodePresets: CompanionPresetDefinitions = {
 	timecodeHours: {
 		category: 'LTC Timecode',
@@ -909,6 +927,7 @@ export const presets: CompanionPresetDefinitions = {
 	...playbackPresets,
 	...progressPresets,
 	...playAudio12Presets,
+	...ableNetPresets,
 	...timecodePresets,
 	...beatPresets,
 	...booleanSettingsPresets,

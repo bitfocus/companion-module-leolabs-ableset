@@ -21,6 +21,7 @@ export const enum Feedback {
 	PlayAudio12IsConnected = 'playAudio12IsConnected',
 	PlayAudio12Scene = 'playAudio12Scene',
 	IsTimecodeActive = 'isTimecodeActive',
+	IsSyncingPlayback = 'isSyncingPlayback',
 }
 
 /** Available actions */
@@ -42,6 +43,7 @@ export const enum Action {
 	PlayCuedSong = 'playCuedSong',
 	Pa12SetScene = 'pa12SetScene',
 	Pa12ToggleScene = 'pa12ToggleScene',
+	SyncPlaybackNow = 'syncPlaybackNow',
 	ToggleSetting = 'toggleSetting',
 	SetAutoplay = 'setAutoplay',
 	SetSafeMode = 'setSafeMode',

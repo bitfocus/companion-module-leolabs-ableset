@@ -221,6 +221,10 @@ class ModuleInstance extends InstanceBase<Config> {
 			})
 			this.debouncedCheckFeedbacks(Feedback.BeatIsInBar)
 		})
+		server.on('/global/isSyncingPlayback', ([, isSyncingPlayback]) => {
+			this.setVariableValues({ isSyncingPlayback: Boolean(isSyncingPlayback) })
+			this.debouncedCheckFeedbacks(Feedback.IsSyncingPlayback)
+		})
 		//#endregion
 
 		//#region setlist
@@ -671,6 +675,14 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'PlayAUDIO12: Toggle Scene',
 				options: [],
 				callback: async () => this.sendOsc(['/playaudio12/toggleScene']),
+			},
+			//#endregion
+
+			//#region AbleNet
+			[Action.SyncPlaybackNow]: {
+				name: 'AbleNet: Sync Playback Now',
+				options: [],
+				callback: async () => this.sendOsc(['/global/syncToRemoteTick']),
 			},
 			//#endregion
 

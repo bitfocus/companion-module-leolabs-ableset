@@ -75,6 +75,8 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'playAudio12Connected', name: 'PlayAUDIO12 Connected' },
 	{ variableId: 'playAudio12Scene', name: 'PlayAUDIO12 Scene' },
 
+	{ variableId: 'isSyncingPlayback', name: 'Is Syncing Playback to Other Computer' },
+
 	{ variableId: 'timecode', name: 'Timecode' },
 	{ variableId: 'timecodeHours', name: 'Timecode Hours' },
 	{ variableId: 'timecodeMinutes', name: 'Timecode Minutes' },
