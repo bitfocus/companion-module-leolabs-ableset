@@ -1,6 +1,7 @@
 import { InstanceBase, InstanceStatus, Regex, SomeCompanionConfigField, runEntrypoint } from '@companion-module/base'
+import { ArgumentType, Client, Server } from 'node-osc'
+import shortUuid from 'short-uuid'
 
-import { Client, Message, MessageLike, Server } from 'node-osc'
 import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 import { Action, Feedback } from './enums'
 import { presets } from './presets'
@@ -129,8 +130,10 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.updateVariableDefinitions() // export variable definitions
 	}
 
-	sendOsc(message: string | Message | MessageLike) {
+	sendOsc(message: [string, ...ArgumentType[]]) {
 		if (this.oscClient) {
+			// Give each message a unique UUID
+			message.push('uuid=' + shortUuid().new())
 			this.log('info', 'sending message: ' + JSON.stringify(message))
 			this.oscClient.send(message)
 		} else {
@@ -415,7 +418,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	// When module gets deleted
 	async destroy() {
 		this.log('debug', 'destroying module...')
-		this.sendOsc('/unsubscribe')
+		this.sendOsc(['/unsubscribe'])
 
 		if (this.connectInterval) {
 			clearInterval(this.connectInterval)
