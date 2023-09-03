@@ -151,10 +151,18 @@ class ModuleInstance extends InstanceBase<Config> {
 			nextSongName2: this.songs[currentIndex + 2],
 			nextSongName3: this.songs[currentIndex + 3],
 			nextSongName4: this.songs[currentIndex + 4],
+			nextSongName5: this.songs[currentIndex + 5],
+			nextSongName6: this.songs[currentIndex + 6],
+			nextSongName7: this.songs[currentIndex + 7],
+			nextSongName8: this.songs[currentIndex + 8],
 			previousSongName: this.songs[currentIndex - 1],
 			previousSongName2: this.songs[currentIndex - 2],
 			previousSongName3: this.songs[currentIndex - 3],
 			previousSongName4: this.songs[currentIndex - 4],
+			previousSongName5: this.songs[currentIndex - 5],
+			previousSongName6: this.songs[currentIndex - 6],
+			previousSongName7: this.songs[currentIndex - 7],
+			previousSongName8: this.songs[currentIndex - 8],
 		})
 	}, 20)
 
@@ -168,10 +176,18 @@ class ModuleInstance extends InstanceBase<Config> {
 			nextSectionName2: this.sections[currentIndex + 2],
 			nextSectionName3: this.sections[currentIndex + 3],
 			nextSectionName4: this.sections[currentIndex + 4],
+			nextSectionName5: this.sections[currentIndex + 5],
+			nextSectionName6: this.sections[currentIndex + 6],
+			nextSectionName7: this.sections[currentIndex + 7],
+			nextSectionName8: this.sections[currentIndex + 8],
 			previousSectionName: this.sections[currentIndex - 1],
 			previousSectionName2: this.sections[currentIndex - 2],
 			previousSectionName3: this.sections[currentIndex - 3],
 			previousSectionName4: this.sections[currentIndex - 4],
+			previousSectionName5: this.sections[currentIndex - 5],
+			previousSectionName6: this.sections[currentIndex - 6],
+			previousSectionName7: this.sections[currentIndex - 7],
+			previousSectionName8: this.sections[currentIndex - 8],
 		})
 	}, 20)
 
