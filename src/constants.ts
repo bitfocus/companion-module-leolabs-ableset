@@ -1,4 +1,4 @@
-export const SONG_PRESET_COUNT = 64
+export const SONG_PRESET_COUNT = 128
 export const SECTION_PRESET_COUNT = 32
 
 export const BOOLEAN_SETTINGS = [
