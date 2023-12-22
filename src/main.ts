@@ -11,19 +11,18 @@ import { makeRange } from './utils/range'
 import { variables } from './variables'
 import { getProgressIcon } from './icons'
 
+/** The port that AbleSet is listening on */
+const SERVER_PORT = 39041
+
 interface Config {
-	/** The host registered in AbleSet for updates */
-	clientHost: string
-	/** The port used to listen to updates */
-	clientPort: string
-	/** The hostname or IP address to connect to  */
+	/** The hostname(s) or IP address(es) to connect to, comma-separated */
 	serverHost: string
 }
 
 class ModuleInstance extends InstanceBase<Config> {
-	config: Config = { clientHost: '127.0.0.1', clientPort: '39052', serverHost: '127.0.0.1' }
+	config: Config = { serverHost: '127.0.0.1' }
 	oscServer: Server | null = null
-	oscClient: Client | null = null
+	oscClients: Client[] = []
 
 	connectInterval: NodeJS.Timeout | null = null
 
@@ -42,30 +41,14 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.log('info', 'Initializing...')
 		this.config = config
 
-		if (
-			config.serverHost !== '127.0.0.1' &&
-			config.serverHost !== 'localhost' &&
-			(!config.clientHost || config.clientHost === '127.0.0.1' || config.clientHost === 'localhost')
-		) {
-			this.updateStatus(
-				InstanceStatus.BadConfig,
-				"You must provide an IP address for AbleSet to send updates to when AbleSet isn't running on this machine, and it can't be 127.0.0.1 or localhost.",
-			)
-			return
-		}
-
 		this.updateStatus(InstanceStatus.Connecting)
 
 		try {
-			const clientPort = Number(this.config.clientPort)
+			this.oscClients = config.serverHost.split(',').map((h) => new Client(h.trim(), 39051))
+			this.oscServer = new Server(39041, '0.0.0.0')
 
-			if (isNaN(clientPort)) {
-				throw new Error('Client port is not valid: ' + this.config.clientPort)
-			}
-
-			this.oscServer = new Server(clientPort, config.clientHost)
-			this.oscClient = new Client(this.config.serverHost, 39051)
-			this.log('info', `OSC client is sending to ${this.config.serverHost}:39051`)
+			const serverStrings = this.config.serverHost.split(',').map((h) => `${h.trim()}:39051`)
+			this.log('info', `OSC client is sending to ${serverStrings.join(', ')}`)
 
 			this.initOscListeners(this.oscServer)
 
@@ -100,13 +83,13 @@ class ModuleInstance extends InstanceBase<Config> {
 
 			const tryConnecting = () => {
 				this.log('info', 'Trying to connect to AbleSet...')
-				this.sendOsc(['/subscribe', config.clientHost, clientPort, 'Companion'])
+				this.sendOsc(['/subscribe', 'auto', SERVER_PORT, 'Companion'])
 				this.sendOsc(['/getValues'])
 			}
 
 			await new Promise<void>((res) => {
 				this.oscServer!.on('listening', () => {
-					this.log('info', `OSC server is listening on port ${clientPort}`)
+					this.log('info', `OSC server is listening on port ${SERVER_PORT}`)
 					res()
 				})
 			})
@@ -131,11 +114,13 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	sendOsc(message: [string, ...ArgumentType[]]) {
-		if (this.oscClient) {
+		if (this.oscClients.length) {
 			// Give each message a unique UUID
 			message.push('uuid=' + shortUuid().new())
 			this.log('info', 'sending message: ' + JSON.stringify(message))
-			this.oscClient.send(message)
+			for (const client of this.oscClients) {
+				client.send(message)
+			}
 		} else {
 			this.log('error', "OSC client doesn't exist")
 		}
@@ -424,7 +409,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			clearInterval(this.connectInterval)
 		}
 
-		await new Promise<void>((res) => this.oscClient?.close(res))
+		await Promise.all(this.oscClients.map((c) => new Promise<void>((res) => c.close(res))))
 		await new Promise<void>((res) => this.oscServer?.close(res))
 		this.log('debug', 'module destroyed')
 	}
@@ -441,33 +426,13 @@ class ModuleInstance extends InstanceBase<Config> {
 	getConfigFields(): SomeCompanionConfigField[] {
 		return [
 			{
-				id: 'clientHost',
+				id: 'clientHosts',
 				type: 'textinput',
-				label: 'Client Host/IP',
-				tooltip:
-					"The IP address AbleSet should send updates to. Set the value to this computer's IP address if you run AbleSet on a different computer than this one.",
-				regex: Regex.HOSTNAME,
+				label: 'Server Hosts/IPs',
 				default: '127.0.0.1',
-				width: 4,
-			},
-			{
-				id: 'clientPort',
-				type: 'textinput',
-				label: 'Client Port',
-				tooltip: 'The port used to listen to status updates. Only change this if the default port causes issues.',
-				regex: Regex.PORT,
-				default: '39052',
-				width: 4,
-			},
-			{
-				id: 'serverHost',
-				type: 'textinput',
-				label: 'Server Host/IP',
 				tooltip:
-					'The host to connect to. Leave this as 127.0.0.1 if AbleSet is running on the same computer as Companion.',
-				regex: Regex.HOSTNAME,
-				default: '127.0.0.1',
-				width: 4,
+					"Please enter the host(s) you'd like to connect to. If AbleSet is running on the same computer as Companion, leave this as 127.0.0.1. You can provide multiple hosts separated by commas for a redundant setup.",
+				width: 12,
 			},
 		]
 	}
