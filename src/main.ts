@@ -426,7 +426,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	getConfigFields(): SomeCompanionConfigField[] {
 		return [
 			{
-				id: 'clientHosts',
+				id: 'serverHost',
 				type: 'textinput',
 				label: 'Server Hosts/IPs',
 				default: '127.0.0.1',
