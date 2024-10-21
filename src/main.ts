@@ -5,7 +5,7 @@ import shortUuid from 'short-uuid'
 import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 import { Action, Feedback } from './enums'
 import { presets } from './presets'
-import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_WHITE } from './utils/colors'
+import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_WHITE, COLORS } from './utils/colors'
 import { debounce, debounceGather } from './utils/debounce'
 import { makeRange } from './utils/range'
 import { variables } from './variables'
@@ -188,6 +188,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.IsInActiveLoop,
 				Feedback.SongProgress,
 				Feedback.SectionProgress,
+				Feedback.SectionProgressByNumber,
 			)
 		})
 		server.on('/global/humanPosition', ([, bars, beats]) => {
@@ -231,11 +232,19 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.sections = sections as string[]
 			this.setVariableValues(
 				Object.fromEntries(
-					makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]),
+					[['sectionsCount', sections.length], ...makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')])],
 				),
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSection, Feedback.CanJumpToPreviousSection)
 			this.updateSections()
+		})
+		server.on('/setlist/sectionColors', ([, ...colors]) => {
+			this.setVariableValues(
+				Object.fromEntries(
+					makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Color`, COLORS[colors[i] as string ?? 'black']]),
+				),
+			)
+			this.debouncedCheckFeedbacks(Feedback.SectionColor)
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {
 			this.activeSongName = String(activeSongName ?? '')
@@ -268,6 +277,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.updateSections()
 			this.debouncedCheckFeedbacks(
 				Feedback.IsCurrentSection,
+				Feedback.IsFutureSection,
 				Feedback.CanJumpToNextSection,
 				Feedback.CanJumpToPreviousSection,
 				Feedback.IsQueuedNextSection,
@@ -275,11 +285,11 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/setlist/activeSectionStart', ([, activeSectionStart]) => {
 			this.setVariableValues({ activeSectionStart: Number(activeSectionStart) })
-			this.debouncedCheckFeedbacks(Feedback.SectionProgress)
+			this.debouncedCheckFeedbacks(Feedback.SectionProgress, Feedback.SectionProgressByNumber)
 		})
 		server.on('/setlist/activeSectionEnd', ([, activeSectionEnd]) => {
 			this.setVariableValues({ activeSectionEnd: Number(activeSectionEnd) })
-			this.debouncedCheckFeedbacks(Feedback.SectionProgress)
+			this.debouncedCheckFeedbacks(Feedback.SectionProgress, Feedback.SectionProgressByNumber)
 		})
 		server.on('/setlist/queuedName', ([, queuedSong, queuedSection]) => {
 			this.setVariableValues({
@@ -896,6 +906,56 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
+			[Feedback.IsFutureSection]: {
+				type: 'boolean',
+				name: 'Is Future Section',
+				defaultStyle: { color: COLOR_WHITE },
+				callback: (feedback) => {
+					return this.activeSectionIndex < Number(feedback.options.sectionNumber) - 1
+				},
+				options: [
+					{
+						id: 'sectionNumber',
+						label: 'Section Number',
+						type: 'number',
+						min: 1,
+						max: 100,
+						default: 1,
+					},
+				],
+			},
+
+			[Feedback.SectionColor]: {
+				type: 'advanced',
+				name: 'Section Color',
+				callback: ({ options }) => {
+					const color  = this.getVariableValue('section' + options.sectionNumber + 'Color') as number
+					const style = {} as { [key: string]: number };
+					(options.colorProps as string[])?.forEach((prop) => style[prop] = color)
+					return style
+				},
+				options: [
+					{
+						id: 'sectionNumber',
+						label: 'Section Number',
+						type: 'number',
+						min: 1,
+						max: 100,
+						default: 1,
+					},
+					{
+						id: 'colorProps',
+						label: 'Color background and/or text',
+						type: 'multidropdown',
+						default: ['bgcolor'],
+						choices: [
+							{ id: 'bgcolor', label: 'Background' },
+							{ id: 'color', label: 'Text' },
+						],
+					}
+				],
+			},
+
 			[Feedback.SongProgress]: {
 				type: 'advanced',
 				name: 'Song Progress',
@@ -918,7 +978,9 @@ class ModuleInstance extends InstanceBase<Config> {
 								: buttonIndex === buttonCount - 1
 								? ('slimRight' as const)
 								: ('slimMid' as const)
-							: ('full' as const)
+							: options.style === 'fullTransparent'
+								? ('fullTransparent' as const)
+								: ('full' as const)
 
 					return { png64: getProgressIcon(percent, style) }
 				},
@@ -946,7 +1008,60 @@ class ModuleInstance extends InstanceBase<Config> {
 						label: 'Style',
 						type: 'dropdown',
 						choices: [
-							{ id: 'full', label: 'Full' },
+							{ id: 'full', label: 'Full Black' },
+							{ id: 'fullTransparent', label: 'Full Transparent' },
+							{ id: 'slim', label: 'Slim' },
+						],
+						default: 'full',
+					},
+				],
+			},
+
+			[Feedback.SectionProgressByNumber]: {
+				type: 'advanced',
+				name: 'Section Progress Background By Section Number',
+				callback: ({ options }) => {
+					let totalPercent
+					if (this.activeSectionIndex < Number(options.sectionNumber) - 1) {
+						totalPercent = 0
+					} else if (this.activeSectionIndex > Number(options.sectionNumber) - 1) { 
+						totalPercent = 100
+					} else {
+						const activeSectionStart = Number(this.getVariableValue('activeSectionStart') ?? 0)
+						const activeSectionEnd = Number(this.getVariableValue('activeSectionEnd') ?? 0)
+						const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
+					  totalPercent = (beatsPosition - activeSectionStart) / (activeSectionEnd - activeSectionStart)
+					}
+
+					const style =
+					  Number(this.getVariableValue('sectionsCount')) > 1 && options.style === 'slim'
+							? Number(options.sectionNumber) === 1
+								? ('slimLeft' as const)
+								: Number(options.sectionNumber) === Number(this.getVariableValue('sectionsCount'))
+								? ('slimRight' as const)
+								: ('slimMid' as const)
+							: options.style === 'fullTransparent'
+								? ('fullTransparent' as const)
+								: ('full' as const)
+
+					return { png64: getProgressIcon(totalPercent, style) }
+				},
+				options: [
+					{
+						id: 'sectionNumber',
+						label: 'Section Number',
+						type: 'number',
+						min: 1,
+						max: 100,
+						default: 1,
+					},
+					{
+						id: 'style',
+						label: 'Style',
+						type: 'dropdown',
+						choices: [
+							{ id: 'full', label: 'Full Black' },
+							{ id: 'fullTransparent', label: 'Full Transparent' },
 							{ id: 'slim', label: 'Slim' },
 						],
 						default: 'full',
@@ -976,7 +1091,9 @@ class ModuleInstance extends InstanceBase<Config> {
 								: buttonIndex === buttonCount - 1
 								? ('slimRight' as const)
 								: ('slimMid' as const)
-							: ('full' as const)
+							: options.style === 'fullTransparent'
+								? ('fullTransparent' as const)
+								: ('full' as const)
 
 					return { png64: getProgressIcon(percent, style) }
 				},
@@ -1004,7 +1121,8 @@ class ModuleInstance extends InstanceBase<Config> {
 						label: 'Style',
 						type: 'dropdown',
 						choices: [
-							{ id: 'full', label: 'Full' },
+							{ id: 'full', label: 'Full Black' },
+							{ id: 'fullTransparent', label: 'Full Transparent' },
 							{ id: 'slim', label: 'Slim' },
 						],
 						default: 'full',

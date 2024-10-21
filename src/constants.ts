@@ -1,5 +1,5 @@
 export const SONG_PRESET_COUNT = 128
-export const SECTION_PRESET_COUNT = 32
+export const SECTION_PRESET_COUNT = 48
 
 export const BOOLEAN_SETTINGS = [
 	{ id: 'autoplay', label: 'Autoplay' },

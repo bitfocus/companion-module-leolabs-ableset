@@ -17,6 +17,7 @@ import {
 	PLAY_ICON_GRAY,
 	PAUSE_ICON_GREEN,
 	STOP_ICON_GREEN,
+	QUEUED_ICON,
 	LOOP_ICON_GRAY,
 	LOOP_ICON,
 	LOOP_ICON_GREEN,
@@ -64,15 +65,24 @@ const sectionPresets = Object.fromEntries(
 			steps: [{ down: [{ actionId: Action.JumpToSectionByNumber, options: { number: i + 1 } }], up: [] }],
 			feedbacks: [
 				{
-					feedbackId: Feedback.IsQueuedSection,
-					options: { sectionNumber: i + 1 },
-					style: { bgcolor: COLOR_GREEN_800 },
+					feedbackId: Feedback.SectionColor,
+					options: { sectionNumber: i + 1, colorProps: ['bgcolor'] },
 				},
 				{
-					feedbackId: Feedback.IsCurrentSection,
-					options: { sectionNumber: i + 1 },
-					style: { bgcolor: COLOR_GREEN_500 },
+					feedbackId: Feedback.SectionProgressByNumber,
+					options: { sectionNumber: i + 1, style: 'fullTransparent' },
 				},
+				{
+					feedbackId: Feedback.IsQueuedSection,
+					options: { sectionNumber: i + 1 },
+					style: { png64: QUEUED_ICON, color: COLOR_WHITE },
+				},
+				// {
+				// 	feedbackId: Feedback.IsFutureSection,
+				// 	options: { sectionNumber: i + 1 },
+				// 	isInverted: true,
+				// 	style: { color: COLOR_WHITE },
+				// }
 			],
 		} as CompanionButtonPresetDefinition,
 	]),
