@@ -11,7 +11,14 @@ import {
 	COLOR_RED_700,
 } from './utils/colors'
 import { makeRange } from './utils/range'
-import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
+import {
+	BOOLEAN_SETTINGS,
+	COUNT_IN_DURATIONS,
+	JUMP_MODES,
+	SECTION_PRESET_COUNT,
+	RELATIVE_SECTION_PRESETS_COUNT,
+	SONG_PRESET_COUNT,
+} from './constants'
 import {
 	PLAY_ICON,
 	PLAY_ICON_GRAY,
@@ -288,252 +295,86 @@ const nextPrevSections: CompanionPresetDefinitions = {
 		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 0, force: 'true' } }], up: [] }],
 		feedbacks: [
 			{
+				feedbackId: Feedback.SectionColor,
+				options: { relative: true, sectionNumber: 0, colorProps: ['bgcolor'] },
+			},
+			{
+				feedbackId: Feedback.SectionProgressByNumber,
+				options: { relative: true, sectionNumber: 0, style: 'fullTransparent' },
+			},
+			{
 				feedbackId: Feedback.IsQueuedNextSection,
 				options: { sectionDelta: 0 },
 				style: { bgcolor: COLOR_GREEN_800 },
 			},
 		],
 	},
-	nextSection1: {
-		category: 'Jump Sections',
-		name: 'Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 1, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 1 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection2: {
-		category: 'Jump Sections',
-		name: '2nd Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `2nd Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName2)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 2, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 2 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection3: {
-		category: 'Jump Sections',
-		name: '3rd Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `3rd Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName3)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 3, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 3 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection4: {
-		category: 'Jump Sections',
-		name: '4th Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `4th Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName4)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 4, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 4 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection5: {
-		category: 'Jump Sections',
-		name: '5th Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `5th Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName5)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 5, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 5 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection6: {
-		category: 'Jump Sections',
-		name: '6th Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `6th Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName6)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 6, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 6 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection7: {
-		category: 'Jump Sections',
-		name: '7th Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `7th Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName7)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 7, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 7 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSection8: {
-		category: 'Jump Sections',
-		name: '8th Next Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `8th Next Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName8)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: 8, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: 8 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection1: {
-		category: 'Jump Sections',
-		name: 'Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -1, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -1 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection2: {
-		category: 'Jump Sections',
-		name: '2nd Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `2nd Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName2)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -2, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -2 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection3: {
-		category: 'Jump Sections',
-		name: '3rd Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `3rd Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName3)` },
-		steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -3, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -3 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection4: {
-		category: 'Jump Sections',
-		name: '4th Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `4th Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName4)` },
-		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -4, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -4 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection5: {
-		category: 'Jump Sections',
-		name: '5th Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `5th Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName5)` },
-		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -5, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -5 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection6: {
-		category: 'Jump Sections',
-		name: '6th Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `6th Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName6)` },
-		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -6, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -6 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection7: {
-		category: 'Jump Sections',
-		name: '7th Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `7th Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName7)` },
-		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -7, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -7 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSection8: {
-		category: 'Jump Sections',
-		name: '8th Previous Section',
-		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `8th Prev Section` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName8)` },
-		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -8, force: 'true' } }], up: [] }],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSection,
-				options: { sectionDelta: -8 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
+	...Object.fromEntries(
+		Array(RELATIVE_SECTION_PRESETS_COUNT)
+			.fill(0)
+			.map((_, i) => [
+				`nextSection${i + 1}`,
+				{
+					category: 'Jump Sections',
+					name: `${i + 1} Next Section`,
+					type: 'button',
+					previewStyle: {
+						...defaultSongStyle,
+						text: (i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `) + 'Next Section',
+					},
+					style: { ...defaultSongStyle, text: `$(AbleSet:nextSectionName${i === 0 ? '' : i + 1})` },
+					steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: i + 1, force: 'true' } }], up: [] }],
+					feedbacks: [
+						{
+							feedbackId: Feedback.SectionColor,
+							options: { relative: true, sectionNumber: i + 1, colorProps: ['bgcolor'] },
+						},
+						{
+							feedbackId: Feedback.SectionProgressByNumber,
+							options: { relative: true, sectionNumber: i + 1, style: 'fullTransparent' },
+						},
+						{
+							feedbackId: Feedback.IsQueuedNextSection,
+							options: { sectionDelta: i + 1 },
+							style: { png64: QUEUED_ICON, color: COLOR_WHITE },
+						},
+					],
+				},
+			]),
+	),
+	...Object.fromEntries(
+		Array(RELATIVE_SECTION_PRESETS_COUNT)
+			.fill(0)
+			.map((_, i) => [
+				`previousSection${i + 1}`,
+				{
+					category: 'Jump Sections',
+					name: `${i + 1} Previous Section`,
+					type: 'button',
+					previewStyle: {
+						...defaultSongStyle,
+						text: (i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `) + 'Previous Section',
+					},
+					style: { ...defaultSongStyle, text: `$(AbleSet:previousSectionName${i === 0 ? '' : i + 1})` },
+					steps: [{ down: [{ actionId: Action.JumpBySections, options: { steps: -(i + 1), force: 'true' } }], up: [] }],
+					feedbacks: [
+						{
+							feedbackId: Feedback.SectionColor,
+							options: { relative: true, sectionNumber: -(i + 1), colorProps: ['bgcolor'] },
+						},
+						{
+							feedbackId: Feedback.SectionProgressByNumber,
+							options: { relative: true, sectionNumber: -(i + 1), style: 'fullTransparent' },
+						},
+						{
+							feedbackId: Feedback.IsQueuedNextSection,
+							options: { sectionDelta: -(i + 1) },
+							style: { png64: QUEUED_ICON, color: COLOR_WHITE },
+						},
+					],
+				},
+			]),
+	),
 }
 
 const playbackPresets: CompanionPresetDefinitions = {
@@ -883,8 +724,8 @@ const makeProgressPresets = (
 					? buttonNumber === 1
 						? PROGRESS.slimLeft[72]
 						: buttonNumber === buttonCount
-						? PROGRESS.slimRight[72]
-						: PROGRESS.slimMid[72]
+							? PROGRESS.slimRight[72]
+							: PROGRESS.slimMid[72]
 					: undefined
 
 			return [

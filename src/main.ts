@@ -28,6 +28,7 @@ class ModuleInstance extends InstanceBase<Config> {
 
 	songs: string[] = []
 	sections: string[] = []
+	sectionColors: number[] = []
 	activeSongName = ''
 	activeSongIndex = -1
 	activeSectionName = ''
@@ -232,18 +233,14 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.sections = sections as string[]
 			this.setVariableValues(
 				Object.fromEntries(
-					[['sectionsCount', sections.length], ...makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')])],
+					makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Name`, String(sections[i] ?? '')]),
 				),
 			)
 			this.debouncedCheckFeedbacks(Feedback.CanJumpToNextSection, Feedback.CanJumpToPreviousSection)
 			this.updateSections()
 		})
 		server.on('/setlist/sectionColors', ([, ...colors]) => {
-			this.setVariableValues(
-				Object.fromEntries(
-					makeRange(SECTION_PRESET_COUNT).map((i) => [`section${i + 1}Color`, COLORS[colors[i] as string ?? 'black']]),
-				),
-			)
+			this.sectionColors = colors.map((c) => COLORS[(c as string) ?? 'black'])
 			this.debouncedCheckFeedbacks(Feedback.SectionColor)
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {
@@ -281,6 +278,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.CanJumpToNextSection,
 				Feedback.CanJumpToPreviousSection,
 				Feedback.IsQueuedNextSection,
+				Feedback.SectionColor,
 			)
 		})
 		server.on('/setlist/activeSectionStart', ([, activeSectionStart]) => {
@@ -929,30 +927,39 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'advanced',
 				name: 'Section Color',
 				callback: ({ options }) => {
-					const color  = this.getVariableValue('section' + options.sectionNumber + 'Color') as number
-					const style = {} as { [key: string]: number };
-					(options.colorProps as string[])?.forEach((prop) => style[prop] = color)
+					const sectionNumber = options.relative
+						? this.activeSectionIndex + Number(options.sectionNumber)
+						: Number(options.sectionNumber) - 1
+					const color = this.sectionColors[sectionNumber] as number
+					const style = {} as { [key: string]: number }
+					;(options.colorProps as string[])?.forEach((prop) => (style[prop] = color))
 					return style
 				},
 				options: [
 					{
+						id: 'relative',
+						label: 'Relative',
+						type: 'checkbox',
+						default: false,
+					},
+					{
 						id: 'sectionNumber',
 						label: 'Section Number',
 						type: 'number',
-						min: 1,
+						min: -100,
 						max: 100,
 						default: 1,
 					},
 					{
 						id: 'colorProps',
-						label: 'Color background and/or text',
+						label: 'Color Background and/or Text',
 						type: 'multidropdown',
 						default: ['bgcolor'],
 						choices: [
 							{ id: 'bgcolor', label: 'Background' },
 							{ id: 'color', label: 'Text' },
 						],
-					}
+					},
 				],
 			},
 
@@ -976,8 +983,8 @@ class ModuleInstance extends InstanceBase<Config> {
 							? buttonIndex === 0
 								? ('slimLeft' as const)
 								: buttonIndex === buttonCount - 1
-								? ('slimRight' as const)
-								: ('slimMid' as const)
+									? ('slimRight' as const)
+									: ('slimMid' as const)
 							: options.style === 'fullTransparent'
 								? ('fullTransparent' as const)
 								: ('full' as const)
@@ -1022,24 +1029,30 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Section Progress Background By Section Number',
 				callback: ({ options }) => {
 					let totalPercent
-					if (this.activeSectionIndex < Number(options.sectionNumber) - 1) {
+					const relativeSectionIndex = options.relative
+						? Number(options.sectionNumber)
+						: Number(options.sectionNumber) - this.activeSectionIndex - 1
+					if (relativeSectionIndex > 0) {
 						totalPercent = 0
-					} else if (this.activeSectionIndex > Number(options.sectionNumber) - 1) { 
+					} else if (relativeSectionIndex < 0) {
 						totalPercent = 100
 					} else {
 						const activeSectionStart = Number(this.getVariableValue('activeSectionStart') ?? 0)
 						const activeSectionEnd = Number(this.getVariableValue('activeSectionEnd') ?? 0)
 						const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
-					  totalPercent = (beatsPosition - activeSectionStart) / (activeSectionEnd - activeSectionStart)
+						totalPercent = (beatsPosition - activeSectionStart) / (activeSectionEnd - activeSectionStart)
 					}
 
+					const absoluteSectionIndex = options.relative
+						? this.activeSectionIndex + Number(options.sectionNumber)
+						: Number(options.sectionNumber) - 1
 					const style =
-					  Number(this.getVariableValue('sectionsCount')) > 1 && options.style === 'slim'
-							? Number(options.sectionNumber) === 1
+						Number(this.sections.length) > 1 && options.style === 'slim'
+							? absoluteSectionIndex === 0
 								? ('slimLeft' as const)
-								: Number(options.sectionNumber) === Number(this.getVariableValue('sectionsCount'))
-								? ('slimRight' as const)
-								: ('slimMid' as const)
+								: absoluteSectionIndex === Number(this.sections.length) - 1
+									? ('slimRight' as const)
+									: ('slimMid' as const)
 							: options.style === 'fullTransparent'
 								? ('fullTransparent' as const)
 								: ('full' as const)
@@ -1048,10 +1061,16 @@ class ModuleInstance extends InstanceBase<Config> {
 				},
 				options: [
 					{
+						id: 'relative',
+						label: 'Relative',
+						type: 'checkbox',
+						default: false,
+					},
+					{
 						id: 'sectionNumber',
 						label: 'Section Number',
 						type: 'number',
-						min: 1,
+						min: -100,
 						max: 100,
 						default: 1,
 					},
@@ -1089,8 +1108,8 @@ class ModuleInstance extends InstanceBase<Config> {
 							? buttonIndex === 0
 								? ('slimLeft' as const)
 								: buttonIndex === buttonCount - 1
-								? ('slimRight' as const)
-								: ('slimMid' as const)
+									? ('slimRight' as const)
+									: ('slimMid' as const)
 							: options.style === 'fullTransparent'
 								? ('fullTransparent' as const)
 								: ('full' as const)

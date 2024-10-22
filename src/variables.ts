@@ -25,7 +25,6 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'activeSectionEnd', name: 'Active Section End' },
 	{ variableId: 'queuedSectionName', name: 'Queued Section Name' },
 	{ variableId: 'queuedSectionIndex', name: 'Queued Section Index' },
-	{ variableId: 'sectionsCount', name: 'Count of Sections in a Song' },
 
 	...Array(SONG_PRESET_COUNT)
 		.fill(0)
@@ -33,9 +32,6 @@ export const variables: CompanionVariableDefinition[] = [
 	...Array(SECTION_PRESET_COUNT)
 		.fill(0)
 		.map((_, i) => ({ variableId: `section${i + 1}Name`, name: `Section ${i + 1} Name` })),
-	...Array(SECTION_PRESET_COUNT)
-		.fill(0)
-		.map((_, i) => ({ variableId: `section${i + 1}Color`, name: `Section ${i + 1} Color` })),
 
 	{ variableId: 'nextSongName', name: 'Next Song Name' },
 	{ variableId: 'nextSongName2', name: '2nd Next Song Name' },
