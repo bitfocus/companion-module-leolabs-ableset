@@ -8,6 +8,9 @@ export const QUEUED_ICON = '<icon:queued.png>'
 export const LOOP_ICON = '<icon:loop.png>'
 export const LOOP_ICON_GRAY = '<icon:loop-gray.png>'
 export const LOOP_ICON_GREEN = '<icon:loop-green.png>'
+export const RECORD_ICON = '<icon:record.png>'
+export const RECORD_ICON_RED = '<icon:record-red.png>'
+export const RECORD_ICON_GRAY = '<icon:record-gray.png>'
 
 export const PROGRESS = {
 	full: ['<icon-dir:progress/72/full>'],

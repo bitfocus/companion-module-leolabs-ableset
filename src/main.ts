@@ -5,7 +5,7 @@ import shortUuid from 'short-uuid'
 import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 import { Action, Feedback } from './enums'
 import { presets } from './presets'
-import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_WHITE, COLORS } from './utils/colors'
+import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors'
 import { debounce, debounceGather } from './utils/debounce'
 import { makeRange } from './utils/range'
 import { variables } from './variables'
@@ -202,6 +202,10 @@ class ModuleInstance extends InstanceBase<Config> {
 		server.on('/global/isPlaying', ([, isPlaying]) => {
 			this.setVariableValues({ isPlaying: Boolean(isPlaying) })
 			this.debouncedCheckFeedbacks(Feedback.IsPlaying)
+		})
+		server.on('/global/isRecording', ([, isRecording]) => {
+			this.setVariableValues({ isRecording: Boolean(isRecording) })
+			this.debouncedCheckFeedbacks(Feedback.IsRecording)
 		})
 		server.on('/global/timeSignature', ([, numerator, denominator]) => {
 			this.setVariableValues({
@@ -489,6 +493,27 @@ class ModuleInstance extends InstanceBase<Config> {
 					} else {
 						this.sendOsc(['/global/play'])
 					}
+				},
+			},
+			[Action.Record]: {
+				name: 'Start Recording',
+				options: [],
+				callback: async () => {
+					this.sendOsc(['/global/record'])
+				},
+			},
+			[Action.StopRecord]: {
+				name: 'Stop Recording',
+				options: [],
+				callback: async () => {
+					this.sendOsc(['/global/stopRecording'])
+				},
+			},
+			[Action.ToggleRecord]: {
+				name: 'Toggle Recording',
+				options: [],
+				callback: async () => {
+					this.sendOsc(['/global/toggleRecording'])
 				},
 			},
 			//#endregion
@@ -811,6 +836,16 @@ class ModuleInstance extends InstanceBase<Config> {
 				options: [],
 			},
 
+			[Feedback.IsRecording]: {
+				type: 'boolean',
+				name: 'Recording',
+				defaultStyle: { bgcolor: COLOR_RED_600 },
+				callback: () => {
+					return Boolean(this.getVariableValue('isRecording'))
+				},
+				options: [],
+			},
+
 			[Feedback.IsBeat]: {
 				type: 'boolean',
 				name: 'Current Beat Equals',
@@ -936,8 +971,8 @@ class ModuleInstance extends InstanceBase<Config> {
 					const sectionNumber = options.relative
 						? this.activeSectionIndex + Number(options.sectionNumber)
 						: Number(options.sectionNumber) - 1
-					const color = this.sectionColors[sectionNumber] as number
-					const style = {} as { [key: string]: number }
+					const color = this.sectionColors[sectionNumber]
+					const style = {} as Record<string, number>
 					;(options.colorProps as string[])?.forEach((prop) => (style[prop] = color))
 					return style
 				},

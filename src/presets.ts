@@ -9,6 +9,7 @@ import {
 	COLOR_GRAY,
 	COLOR_DARK_GRAY,
 	COLOR_RED_700,
+	COLOR_RED_600,
 } from './utils/colors'
 import { makeRange } from './utils/range'
 import {
@@ -29,6 +30,9 @@ import {
 	LOOP_ICON,
 	LOOP_ICON_GREEN,
 	PROGRESS,
+	RECORD_ICON,
+	RECORD_ICON_RED,
+	RECORD_ICON_GRAY,
 } from './icons'
 
 const defaultSongStyle = { bgcolor: COLOR_BLACK, color: COLOR_WHITE, size: '14' } as const
@@ -405,6 +409,21 @@ const playbackPresets: CompanionPresetDefinitions = {
 				feedbackId: Feedback.IsPlaying,
 				options: {},
 				style: { bgcolor: COLOR_GREEN_700, png64: STOP_ICON_GREEN },
+			},
+		],
+	},
+	toggleRecord: {
+		category: 'Playback',
+		name: 'Toggle Record',
+		type: 'button',
+		style: { ...defaultStyle, text: '', png64: RECORD_ICON },
+		previewStyle: { ...defaultStyle, text: 'Record', png64: RECORD_ICON_GRAY },
+		steps: [{ down: [{ actionId: Action.ToggleRecord, options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: Feedback.IsRecording,
+				options: {},
+				style: { bgcolor: COLOR_RED_600, png64: RECORD_ICON_RED },
 			},
 		],
 	},

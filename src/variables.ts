@@ -7,6 +7,7 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'humanPositionBeats', name: 'Beats Part of the Playhead Position' },
 	{ variableId: 'tempo', name: 'Current Tempo' },
 	{ variableId: 'isPlaying', name: 'Is Playing' },
+	{ variableId: 'isRecording', name: 'Is Recording' },
 	{ variableId: 'timeSignature', name: 'Time Signature' },
 	{ variableId: 'timeSignatureNumerator', name: 'Time Signature Numerator' },
 	{ variableId: 'timeSignatureDenominator', name: 'Time Signature Denominator' },

@@ -1,6 +1,7 @@
 /** Available feedbacks */
 export const enum Feedback {
 	IsPlaying = 'isPlaying',
+	IsRecording = 'isRecording',
 	IsBeat = 'isBeat',
 	BeatIsInBar = 'beatIsInBar',
 	IsInLoop = 'isInLoop',
@@ -34,6 +35,9 @@ export const enum Action {
 	Stop = 'stop',
 	PlayPause = 'playPause',
 	PlayStop = 'playStop',
+	Record = 'record',
+	StopRecord = 'stopRecord',
+	ToggleRecord = 'toggleRecord',
 	EnableLoop = 'enableLoop',
 	EscapeLoop = 'escapeLoop',
 	ToggleLoop = 'toggleLoop',
