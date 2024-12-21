@@ -326,6 +326,12 @@ class ModuleInstance extends InstanceBase<Config> {
 		server.on('/setlist/isCountingIn', ([, isCountingIn]) => {
 			this.setVariableValues({ isCountingIn: Boolean(isCountingIn) })
 		})
+		server.on('/setlist/remainingTimeInSong', ([, remainingTime]) => {
+			this.setVariableValues({ remainingTimeInSong: Number(remainingTime) })
+		})
+		server.on('/setlist/remainingTimeInSet', ([, remainingTime]) => {
+			this.setVariableValues({ remainingTimeInSet: Number(remainingTime) })
+		})
 		//#endregion
 
 		//#region PlayAUDIO12

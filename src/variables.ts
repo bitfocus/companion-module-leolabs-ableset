@@ -85,6 +85,9 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'timecodeFps', name: 'Timecode FPS' },
 	{ variableId: 'timecodeStale', name: 'Timecode Stale' },
 
+	{ variableId: 'remainingTimeInSong', name: 'Remaining Time in Song' },
+	{ variableId: 'remainingTimeInSet', name: 'Remaining Time in Set' },
+
 	{ variableId: 'autoplay', name: 'Autoplay' },
 	{ variableId: 'safeMode', name: 'Safe Mode' },
 	{ variableId: 'alwaysStopOnSongEnd', name: 'Always Stop on Song End' },
