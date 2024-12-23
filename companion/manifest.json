@@ -19,7 +19,7 @@
 		"apiVersion": "0.0.0",
 		"entrypoint": "../dist/main.js"
 	},
-	"legacyIds": [],
+	"legacyIds": ["ableset"],
 	"manufacturer": "Leolabs",
 	"products": ["AbleSet"],
 	"keywords": ["Ableton", "Live", "Setlist"]
