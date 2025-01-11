@@ -530,7 +530,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 }
 
 const beatPresets = Object.fromEntries(
-	makeRange(8).map((i) => [
+	makeRange(16).map((i) => [
 		`beat${i + 1}`,
 		{
 			category: 'Visual Metronome',
