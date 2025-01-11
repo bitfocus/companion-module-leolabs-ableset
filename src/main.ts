@@ -85,7 +85,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			const tryConnecting = () => {
 				this.log('info', 'Trying to connect to AbleSet...')
 				this.sendOsc(['/subscribe', 'auto', SERVER_PORT, 'Companion'])
-				this.sendOsc(['/getValues'])
+				this.sendOsc(['/getValues', SERVER_PORT])
 			}
 
 			await new Promise<void>((res) => {
@@ -180,6 +180,14 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 	}, 20)
 
+	updateMeasureOrPosition = () => {
+		this.setVariableValues({
+			currentMeasureOrPosition: this.getVariableValue('currentMeasure') || this.getVariableValue('humanPosition'),
+			currentMeasureOrPositionBeats:
+				this.getVariableValue('currentMeasureBeats') || this.getVariableValue('humanPositionBeats'),
+		})
+	}
+
 	initOscListeners(server: Server) {
 		//#region global
 		server.on('/global/beatsPosition', ([, beats]) => {
@@ -193,8 +201,27 @@ class ModuleInstance extends InstanceBase<Config> {
 			)
 		})
 		server.on('/global/humanPosition', ([, bars, beats]) => {
-			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}`, humanPositionBeats: Number(beats) ?? 0 })
+			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}`, humanPositionBeats: Number(beats ?? 0) })
 			this.checkFeedbacks(Feedback.IsBeat)
+			this.updateMeasureOrPosition()
+		})
+		server.on('/global/currentMeasure', ([, bars, beats, total]) => {
+			if (bars || beats || total) {
+				this.setVariableValues({
+					currentMeasure: `${bars ?? 0}.${beats ?? 0}`,
+					currentMeasureBeats: Number(beats ?? 0),
+					currentMeasureTotalBeats: Number(total ?? 0),
+				})
+			} else {
+				this.setVariableValues({
+					currentMeasure: undefined,
+					currentMeasureBeats: undefined,
+					currentMeasureTotalBeats: undefined,
+				})
+			}
+
+			this.checkFeedbacks(Feedback.IsBeat, Feedback.BeatIsInBar)
+			this.updateMeasureOrPosition()
 		})
 		server.on('/global/tempo', ([, tempo]) => {
 			this.setVariableValues({ tempo: Number(tempo) })
@@ -851,7 +878,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Current Beat Equals',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: ({ options }) => {
-					return this.getVariableValue('humanPositionBeats') === Number(options.beat)
+					const beat = this.getVariableValue('currentMeasureBeats') || this.getVariableValue('humanPositionBeats')
+					return beat === Number(options.beat)
 				},
 				options: [
 					{
@@ -872,7 +900,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				name: 'Beat is in Bar',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: ({ options }) => {
-					return Number(options.beat) <= Number(this.getVariableValue('timeSignatureNumerator'))
+					return (
+						Number(options.beat) <=
+						Number(this.getVariableValue('currentMeasureTotalBeats') || this.getVariableValue('timeSignatureNumerator'))
+					)
 				},
 				options: [
 					{

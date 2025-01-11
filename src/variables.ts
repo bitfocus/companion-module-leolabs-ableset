@@ -5,6 +5,17 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'beatsPosition', name: 'Playhead Position in Beats' },
 	{ variableId: 'humanPosition', name: 'Playhead Position in Bars.Beats' },
 	{ variableId: 'humanPositionBeats', name: 'Beats Part of the Playhead Position' },
+	{ variableId: 'currentMeasure', name: 'Current Measure in Bars.Beats, taken from a measure track if available' },
+	{ variableId: 'currentMeasureBeats', name: 'Beats Part of the Current Measure' },
+	{ variableId: 'currentMeasureTotalBeats', name: 'Number of Beats in the Current Measure' },
+	{
+		variableId: 'currentMeasureOrPosition',
+		name: 'Current Measure if a Measure Track Exists, Otherwise Human Position',
+	},
+	{
+		variableId: 'currentMeasureOrPositionBeats',
+		name: 'Beats of Current Measure if a Measure Track Exists, Otherwise Beats of Human Position',
+	},
 	{ variableId: 'tempo', name: 'Current Tempo' },
 	{ variableId: 'isPlaying', name: 'Is Playing' },
 	{ variableId: 'isRecording', name: 'Is Recording' },
