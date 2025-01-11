@@ -3,6 +3,7 @@ import { SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 
 export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'beatsPosition', name: 'Playhead Position in Beats' },
+	{ variableId: 'finePosition', name: 'Fine Playhead Position in Beats, Needs "Fine Updates" Option to be Enabled' },
 	{ variableId: 'humanPosition', name: 'Playhead Position in Bars.Beats' },
 	{ variableId: 'humanPositionBeats', name: 'Beats Part of the Playhead Position' },
 	{ variableId: 'currentMeasure', name: 'Current Measure in Bars.Beats, taken from a measure track if available' },

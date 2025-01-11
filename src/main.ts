@@ -1,4 +1,4 @@
-import { InstanceBase, InstanceStatus, Regex, SomeCompanionConfigField, runEntrypoint } from '@companion-module/base'
+import { InstanceBase, InstanceStatus, SomeCompanionConfigField, runEntrypoint } from '@companion-module/base'
 import { ArgumentType, Client, Server } from 'node-osc'
 import shortUuid from 'short-uuid'
 
@@ -6,10 +6,11 @@ import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT,
 import { Action, Feedback } from './enums'
 import { presets } from './presets'
 import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors'
-import { debounce, debounceGather } from './utils/debounce'
+import { debounceGather } from './utils/debounce'
 import { makeRange } from './utils/range'
 import { variables } from './variables'
 import { getProgressIcon } from './icons'
+import { debounce, throttle } from 'lodash'
 
 /** The port that AbleSet is listening on */
 const SERVER_PORT = 39041
@@ -17,14 +18,17 @@ const SERVER_PORT = 39041
 interface Config {
 	/** The hostname(s) or IP address(es) to connect to, comma-separated */
 	serverHost: string
+	/** Whether to request fine  */
+	fineUpdates: boolean
 }
 
 class ModuleInstance extends InstanceBase<Config> {
-	config: Config = { serverHost: '127.0.0.1' }
+	config: Config = { serverHost: '127.0.0.1', fineUpdates: true }
 	oscServer: Server | null = null
 	oscClients: Client[] = []
 
 	connectInterval: NodeJS.Timeout | null = null
+	cancelHeartbeat = () => {}
 
 	songs: string[] = []
 	sections: string[] = []
@@ -61,6 +65,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				isConnected = false
 			}, 2500)
 
+			this.cancelHeartbeat = () => handleHeartbeat.cancel()
+
 			this.oscServer.once('/global/isPlaying', () => {
 				isConnected = true
 				this.log('info', 'Connection established')
@@ -84,7 +90,7 @@ class ModuleInstance extends InstanceBase<Config> {
 
 			const tryConnecting = () => {
 				this.log('info', 'Trying to connect to AbleSet...')
-				this.sendOsc(['/subscribe', 'auto', SERVER_PORT, 'Companion'])
+				this.sendOsc(['/subscribe', 'auto', SERVER_PORT, 'Companion', config.fineUpdates ?? false])
 				this.sendOsc(['/getValues', SERVER_PORT])
 			}
 
@@ -200,6 +206,13 @@ class ModuleInstance extends InstanceBase<Config> {
 				Feedback.SectionProgressByNumber,
 			)
 		})
+		server.on(
+			'/global/finePosition',
+			throttle(([, beats]) => {
+				this.setVariableValues({ finePosition: Number(beats) })
+				this.checkFeedbacks(Feedback.SongProgress, Feedback.SectionProgress, Feedback.SectionProgressByNumber)
+			}, 40),
+		)
 		server.on('/global/humanPosition', ([, bars, beats]) => {
 			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}`, humanPositionBeats: Number(beats ?? 0) })
 			this.checkFeedbacks(Feedback.IsBeat)
@@ -454,6 +467,7 @@ class ModuleInstance extends InstanceBase<Config> {
 			clearInterval(this.connectInterval)
 		}
 
+		this.cancelHeartbeat()
 		await Promise.all(this.oscClients.map((c) => new Promise<void>((res) => c.close(res))))
 		await new Promise<void>((res) => this.oscServer?.close(res))
 		this.log('debug', 'module destroyed')
@@ -477,6 +491,15 @@ class ModuleInstance extends InstanceBase<Config> {
 				default: '127.0.0.1',
 				tooltip:
 					"Please enter the host(s) you'd like to connect to. If AbleSet is running on the same computer as Companion, leave this as 127.0.0.1. You can provide multiple hosts separated by commas for a redundant setup.",
+				width: 12,
+			},
+			{
+				id: 'fineUpdates',
+				type: 'checkbox',
+				label: 'Fine Updates',
+				default: true,
+				tooltip:
+					'Disable this if it causes performance issues. With this enabled, progress bars are updated every 40ms, otherwise they are updated every beat.',
 				width: 12,
 			},
 		]
@@ -1041,8 +1064,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				callback: ({ options }) => {
 					const activeSongStart = Number(this.getVariableValue('activeSongStart') ?? 0)
 					const activeSongEnd = Number(this.getVariableValue('activeSongEnd') ?? 0)
-					const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
-					const totalPercent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
+					const position = Number(this.getVariableValue('finePosition') || this.getVariableValue('beatsPosition') || 0)
+					const totalPercent = (position - activeSongStart) / (activeSongEnd - activeSongStart)
 
 					const buttonCount = Number(options.buttonCount)
 					const buttonIndex = Number(options.buttonNumber) - 1
@@ -1166,8 +1189,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				callback: ({ options }) => {
 					const activeSongStart = Number(this.getVariableValue('activeSectionStart') ?? 0)
 					const activeSongEnd = Number(this.getVariableValue('activeSectionEnd') ?? 0)
-					const beatsPosition = Number(this.getVariableValue('beatsPosition') ?? 0)
-					const totalPercent = (beatsPosition - activeSongStart) / (activeSongEnd - activeSongStart)
+					const position = Number(this.getVariableValue('finePosition') || this.getVariableValue('beatsPosition') || 0)
+					const totalPercent = (position - activeSongStart) / (activeSongEnd - activeSongStart)
 
 					const buttonCount = Number(options.buttonCount)
 					const buttonIndex = Number(options.buttonNumber) - 1
