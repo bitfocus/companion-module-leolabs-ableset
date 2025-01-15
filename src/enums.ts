@@ -61,4 +61,5 @@ export const enum Action {
 	SetCountInSoloClick = 'setCountInSoloClick',
 	SetCountInDuration = 'setCountInDuration',
 	SetJumpMode = 'setJumpMode',
+	SendOscCommand = 'sendOscCommand',
 }

@@ -11,6 +11,7 @@ import { makeRange } from './utils/range'
 import { variables } from './variables'
 import { getProgressIcon } from './icons'
 import { debounce, throttle } from 'lodash'
+import { parseOscCommands } from './utils/string-to-osc'
 
 /** The port that AbleSet is listening on */
 const SERVER_PORT = 39041
@@ -869,6 +870,44 @@ class ModuleInstance extends InstanceBase<Config> {
 					},
 				],
 				callback: async (event) => this.sendOsc(['/settings/jumpMode', String(event.options.value)]),
+			},
+			//#endregion
+
+			//#region misc
+			[Action.SendOscCommand]: {
+				name: 'Send OSC Commands',
+				description: 'Sends a given set of OSC commands to AbleSet',
+				options: [
+					{
+						id: 'command',
+						label: 'OSC Commands',
+						type: 'textinput',
+						regex: '^\\/(.+)',
+					},
+				],
+				callback: async (event) => {
+					const commands = parseOscCommands(String(event.options.command))
+
+					for (const command of commands) {
+						let customSleep: number | null = null
+
+						if (!command.host && command.address === '//sleep') {
+							const firstArg = command.args?.[0]
+							customSleep = firstArg ? Number(firstArg.value) : null
+
+							if (customSleep) {
+								const delay = Math.max(0, customSleep)
+								await new Promise((res) => setTimeout(res, delay))
+							}
+						} else {
+							this.sendOsc([command.address, ...(command.args ?? [])])
+						}
+
+						if (!customSleep) {
+							await new Promise((res) => setTimeout(res, 50))
+						}
+					}
+				},
 			},
 			//#endregion
 		})
