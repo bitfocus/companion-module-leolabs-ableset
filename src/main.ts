@@ -23,6 +23,17 @@ interface Config {
 	fineUpdates: boolean
 }
 
+const NOISY_ADDRESSES = new Set([
+	'/heartbeat',
+	'/global/humanPosition',
+	'/global/beatsPosition',
+	'/global/currentMeasure',
+	'/global/measureOrPosition',
+	'/setlist/remainingTimeInSong',
+	'/setlist/remainingTimeInSet',
+	'/timecode/tc',
+])
+
 class ModuleInstance extends InstanceBase<Config> {
 	config: Config = { serverHost: '127.0.0.1', fineUpdates: true }
 	oscServer: Server | null = null
@@ -200,7 +211,9 @@ class ModuleInstance extends InstanceBase<Config> {
 
 	initOscListeners(server: Server) {
 		server.on('message', ([address, ...args], info) => {
-			this.log('debug', 'OSC from ' + info.address + ': ' + JSON.stringify({ address, args }))
+			if (!NOISY_ADDRESSES.has(address)) {
+				this.log('debug', 'OSC from ' + info.address + ': ' + JSON.stringify({ address, args }))
+			}
 		})
 
 		//#region global
@@ -1658,10 +1671,6 @@ class ModuleInstance extends InstanceBase<Config> {
 					},
 				],
 				callback: ({ options }) => {
-					this.log(
-						'debug',
-						'Checking group solo: ' + JSON.stringify({ options, soloedGroups: [...this.soloedTrackGroups.keys()] }),
-					)
 					return this.soloedTrackGroups.has(String(options.group).toLowerCase())
 				},
 			},
@@ -1679,10 +1688,6 @@ class ModuleInstance extends InstanceBase<Config> {
 					},
 				],
 				callback: ({ options }) => {
-					this.log(
-						'debug',
-						'Checking group solo: ' + JSON.stringify({ options, mutedGroups: [...this.mutedTrackGroups.keys()] }),
-					)
 					return this.mutedTrackGroups.has(String(options.group).toLowerCase())
 				},
 			},
