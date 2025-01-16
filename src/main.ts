@@ -398,7 +398,11 @@ class ModuleInstance extends InstanceBase<Config> {
 			this.setVariableValues({ remainingTimeInSet: Number(remainingTime) })
 		})
 		server.on('message', ([address, state]) => {
-			if (address.startsWith('/trackGroups/') && address !== '/trackGroups/names') {
+			if (
+				address.startsWith('/trackGroups/') &&
+				address !== '/trackGroups/names' &&
+				address !== '/trackGroups/colors'
+			) {
 				const [, , groupName, type] = address.split('/')
 
 				if (!groupName || !type) {
