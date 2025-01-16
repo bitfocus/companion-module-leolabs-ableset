@@ -15,7 +15,10 @@ const run = async () => {
 	const fullDir = path.join(dir, 'full')
 	fs.mkdirSync(fullDir, { recursive: true })
 
-	const styles = fs.readdirSync(path.join(__dirname, 'progress-styles')).map((s) => s.replace('.png', ''))
+	const styles = fs
+		.readdirSync(path.join(__dirname, 'progress-styles'))
+		.filter((s) => !s.startsWith('.'))
+		.map((s) => s.replace('.png', ''))
 	const styleImages: Record<string, Image> = {}
 
 	for (const style of styles) {

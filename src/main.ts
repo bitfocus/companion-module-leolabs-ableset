@@ -39,6 +39,9 @@ class ModuleInstance extends InstanceBase<Config> {
 	activeSectionName = ''
 	activeSectionIndex = -1
 
+	soloedTrackGroups = new Set<string>()
+	mutedTrackGroups = new Set<string>()
+
 	constructor(internal: any) {
 		super(internal)
 	}
@@ -196,6 +199,10 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	initOscListeners(server: Server) {
+		server.on('message', ([address, ...args], info) => {
+			this.log('debug', 'OSC from ' + info.address + ': ' + JSON.stringify({ address, args }))
+		})
+
 		//#region global
 		server.on('/global/beatsPosition', ([, beats]) => {
 			this.setVariableValues({ beatsPosition: Number(beats) })
@@ -376,6 +383,34 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/setlist/remainingTimeInSet', ([, remainingTime]) => {
 			this.setVariableValues({ remainingTimeInSet: Number(remainingTime) })
+		})
+		server.on('message', ([address, state]) => {
+			if (address.startsWith('/trackGroups/') && address !== '/trackGroups/names') {
+				const [, , groupName, type] = address.split('/')
+
+				if (!groupName || !type) {
+					this.log('warn', 'Got invalid state event: ' + JSON.stringify({ address, groupName, type }))
+					return
+				}
+
+				if (type === 'soloed') {
+					if (state) {
+						this.soloedTrackGroups.add(groupName)
+					} else {
+						this.soloedTrackGroups.delete(groupName)
+					}
+
+					this.debouncedCheckFeedbacks(Feedback.IsTrackGroupSoloed)
+				} else if (type === 'muted') {
+					if (state) {
+						this.mutedTrackGroups.add(groupName)
+					} else {
+						this.mutedTrackGroups.delete(groupName)
+					}
+
+					this.debouncedCheckFeedbacks(Feedback.IsTrackGroupMuted)
+				}
+			}
 		})
 		//#endregion
 
@@ -916,6 +951,47 @@ class ModuleInstance extends InstanceBase<Config> {
 					},
 				],
 				callback: async (event) => this.sendOsc(['/settings/jumpMode', String(event.options.value)]),
+			},
+			//#endregion
+
+			//#region track groups
+			[Action.SetTrackGroupState]: {
+				name: 'Set Track Group State',
+				description: 'Sets the solo or mute state of a given track group',
+				options: [
+					{
+						id: 'group',
+						label: 'Track Group',
+						type: 'textinput',
+					},
+					{
+						id: 'type',
+						label: 'State Type',
+						type: 'dropdown',
+						choices: [
+							{ id: 'solo', label: 'Solo' },
+							{ id: 'mute', label: 'Mute' },
+						],
+						default: 'solo',
+					},
+					{
+						id: 'value',
+						label: 'Value',
+						type: 'dropdown',
+						choices: [
+							{ id: 'toggle', label: 'Toggle' },
+							{ id: 'true', label: 'True' },
+							{ id: 'false', label: 'False' },
+						],
+						default: 'toggle',
+					},
+				],
+				callback: ({ options }) => {
+					this.sendOsc([
+						`/trackGroups/${options.group}/${options.type}`,
+						options.value === 'false' ? 0 : String(options.value),
+					])
+				},
 			},
 			//#endregion
 
@@ -1562,22 +1638,53 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'boolean',
 				name: 'Timecode is Active',
 				defaultStyle: { color: COLOR_WHITE },
+				options: [],
 				callback: () => {
 					const stale = this.getVariableValue('timecodeStale')
 					return typeof stale !== 'undefined' && !stale
 				},
+			},
+
+			[Feedback.IsTrackGroupSoloed]: {
+				type: 'boolean',
+				name: 'Track Group is Soloed',
+				defaultStyle: {},
 				options: [
 					{
-						id: 'scene',
-						label: 'Scene',
-						type: 'dropdown',
-						choices: [
-							{ id: 1, label: 'Scene A' },
-							{ id: 2, label: 'Scene B' },
-						],
-						default: 1,
+						id: 'group',
+						label: 'Track Group',
+						type: 'textinput',
+						default: 'click',
 					},
 				],
+				callback: ({ options }) => {
+					this.log(
+						'debug',
+						'Checking group solo: ' + JSON.stringify({ options, soloedGroups: [...this.soloedTrackGroups.keys()] }),
+					)
+					return this.soloedTrackGroups.has(String(options.group).toLowerCase())
+				},
+			},
+
+			[Feedback.IsTrackGroupMuted]: {
+				type: 'boolean',
+				name: 'Track Group is Muted',
+				defaultStyle: {},
+				options: [
+					{
+						id: 'group',
+						label: 'Track Group',
+						type: 'textinput',
+						default: 'click',
+					},
+				],
+				callback: ({ options }) => {
+					this.log(
+						'debug',
+						'Checking group solo: ' + JSON.stringify({ options, mutedGroups: [...this.mutedTrackGroups.keys()] }),
+					)
+					return this.mutedTrackGroups.has(String(options.group).toLowerCase())
+				},
 			},
 		})
 	}

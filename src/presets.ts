@@ -555,6 +555,36 @@ const playbackPresets: CompanionPresetDefinitions = {
 		steps: [],
 		feedbacks: [],
 	},
+	clickSolo: {
+		category: 'Playback',
+		name: 'Solo Click Tracks',
+		type: 'button',
+		style: { ...defaultStyle, text: 'Solo Click' },
+		steps: [
+			{
+				down: [{ actionId: Action.SetTrackGroupState, options: { group: 'click', type: 'solo', value: 'toggle' } }],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{ feedbackId: Feedback.IsTrackGroupSoloed, options: { group: 'click' }, style: { bgcolor: COLOR_RED_700 } },
+		],
+	},
+	clickMute: {
+		category: 'Playback',
+		name: 'Mute Click Tracks',
+		type: 'button',
+		style: { ...defaultStyle, text: 'Mute Click' },
+		steps: [
+			{
+				down: [{ actionId: Action.SetTrackGroupState, options: { group: 'click', type: 'mute', value: 'toggle' } }],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{ feedbackId: Feedback.IsTrackGroupMuted, options: { group: 'click' }, style: { bgcolor: COLOR_RED_700 } },
+		],
+	},
 }
 
 const beatPresets = Object.fromEntries(

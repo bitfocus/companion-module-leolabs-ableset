@@ -26,6 +26,8 @@ export const enum Feedback {
 	PlayAudio12Scene = 'playAudio12Scene',
 	IsTimecodeActive = 'isTimecodeActive',
 	IsSyncingPlayback = 'isSyncingPlayback',
+	IsTrackGroupMuted = 'isTrackGroupMuted',
+	IsTrackGroupSoloed = 'isTrackGroupSoloed',
 }
 
 /** Available actions */
@@ -64,4 +66,5 @@ export const enum Action {
 	SetCountInDuration = 'setCountInDuration',
 	SetJumpMode = 'setJumpMode',
 	SendOscCommand = 'sendOscCommand',
+	SetTrackGroupState = 'setTrackGroupState',
 }
