@@ -22,6 +22,7 @@ export const COLOR_VIOLET_600 = combineRgb(124, 58, 237)
 export const COLOR_PURPLE_600 = combineRgb(147, 51, 234)
 export const COLOR_PINK_600 = combineRgb(219, 39, 119)
 export const COLOR_GRAY_600 = combineRgb(75, 85, 99)
+
 //  ["red","orange","amber","yellow","lime","green","emerald","teal","sky","blue","violet","purple","pink","gray"]
 export const COLORS = {
 	red: COLOR_RED_600,

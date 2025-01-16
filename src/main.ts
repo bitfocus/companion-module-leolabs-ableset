@@ -648,6 +648,52 @@ class ModuleInstance extends InstanceBase<Config> {
 						`force=${event.options.force ?? 'false'}`,
 					]),
 			},
+			[Action.JumpByBeats]: {
+				name: 'Jump by Beats',
+				options: [
+					{
+						id: 'steps',
+						type: 'number',
+						label: 'Steps',
+						tooltip: '1 jumps one beat forward, -1 jumps one beat backward',
+						min: -100,
+						max: 100,
+						default: 1,
+					},
+					{
+						id: 'ignoreBounds',
+						type: 'checkbox',
+						label: 'Ignore Song Bounds',
+						tooltip: 'When this is enabled, you can jump beyond the current song',
+						default: false,
+					},
+				],
+				callback: (event) =>
+					this.sendOsc(['/setlist/jumpByBeats', Number(event.options.steps), Boolean(event.options.ignoreBounds)]),
+			},
+			[Action.JumpByBars]: {
+				name: 'Jump by Bars',
+				options: [
+					{
+						id: 'steps',
+						type: 'number',
+						label: 'Steps',
+						tooltip: '1 jumps one bar forward, -1 jumps one bar backward',
+						min: -100,
+						max: 100,
+						default: 1,
+					},
+					{
+						id: 'ignoreBounds',
+						type: 'checkbox',
+						label: 'Ignore Song Bounds',
+						tooltip: 'When this is enabled, you can jump beyond the current song',
+						default: false,
+					},
+				],
+				callback: (event) =>
+					this.sendOsc(['/setlist/jumpByBars', Number(event.options.steps), Boolean(event.options.ignoreBounds)]),
+			},
 			[Action.JumpToSectionByNumber]: {
 				name: 'Jump to Section by Number',
 				options: [

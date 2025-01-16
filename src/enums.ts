@@ -44,6 +44,8 @@ export const enum Action {
 	JumpToSongByNumber = 'jumpToSongByNumber',
 	JumpToSongByName = 'jumpToSongByName',
 	JumpBySongs = 'jumpBySongs',
+	JumpByBeats = 'jumpByBeats',
+	JumpByBars = 'jumpByBars',
 	JumpToSectionByNumber = 'jumpToSectionByNumber',
 	JumpToSectionByName = 'jumpToSectionByName',
 	JumpBySections = 'jumpBySections',

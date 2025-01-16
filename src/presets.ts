@@ -33,6 +33,14 @@ import {
 	RECORD_ICON,
 	RECORD_ICON_RED,
 	RECORD_ICON_GRAY,
+	PREV_SONG_ICON_GRAY,
+	PREV_SONG_ICON,
+	NEXT_SONG_ICON_GRAY,
+	NEXT_SONG_ICON,
+	PREV_BAR_ICON,
+	PREV_BAR_ICON_GRAY,
+	NEXT_BAR_ICON_GRAY,
+	NEXT_BAR_ICON,
 } from './icons'
 
 const defaultSongStyle = { bgcolor: COLOR_BLACK, color: COLOR_WHITE, size: '14' } as const
@@ -431,10 +439,11 @@ const playbackPresets: CompanionPresetDefinitions = {
 		category: 'Playback',
 		name: 'Previous Song',
 		type: 'button',
-		style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSong' },
+		style: { ...defaultStyle, text: '', png64: PREV_SONG_ICON_GRAY },
+		previewStyle: { ...defaultStyle, text: 'Prev Song', png64: PREV_SONG_ICON_GRAY },
 		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: -1 } }], up: [] }],
 		feedbacks: [
-			{ feedbackId: Feedback.CanJumpToPreviousSong, options: {}, style: { color: COLOR_WHITE } },
+			{ feedbackId: Feedback.CanJumpToPreviousSong, options: {}, style: { png64: PREV_SONG_ICON } },
 			{
 				feedbackId: Feedback.IsQueuedNextSong,
 				options: { songDelta: 'anyPrevious' },
@@ -446,10 +455,11 @@ const playbackPresets: CompanionPresetDefinitions = {
 		category: 'Playback',
 		name: 'Next Song',
 		type: 'button',
-		style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSong' },
+		style: { ...defaultStyle, text: '', png64: NEXT_SONG_ICON_GRAY },
+		previewStyle: { ...defaultStyle, text: 'Next Song', png64: NEXT_SONG_ICON_GRAY },
 		steps: [{ down: [{ actionId: Action.JumpBySongs, options: { steps: 1 } }], up: [] }],
 		feedbacks: [
-			{ feedbackId: Feedback.CanJumpToNextSong, options: {}, style: { color: COLOR_WHITE } },
+			{ feedbackId: Feedback.CanJumpToNextSong, options: {}, style: { png64: NEXT_SONG_ICON } },
 			{
 				feedbackId: Feedback.IsQueuedNextSong,
 				options: { songDelta: 'anyNext' },
@@ -486,6 +496,24 @@ const playbackPresets: CompanionPresetDefinitions = {
 				style: { bgcolor: COLOR_GREEN_800 },
 			},
 		],
+	},
+	prevBar: {
+		category: 'Playback',
+		name: 'Previous Bar',
+		type: 'button',
+		style: { ...defaultStyle, text: '', png64: PREV_BAR_ICON },
+		previewStyle: { ...defaultStyle, text: 'Prev Bar', png64: PREV_BAR_ICON_GRAY },
+		steps: [{ down: [{ actionId: Action.JumpByBars, options: { steps: -1 } }], up: [] }],
+		feedbacks: [],
+	},
+	nextBar: {
+		category: 'Playback',
+		name: 'Next Song',
+		type: 'button',
+		style: { ...defaultStyle, text: '', png64: NEXT_BAR_ICON },
+		previewStyle: { ...defaultStyle, text: 'Next Bar', png64: NEXT_BAR_ICON_GRAY },
+		steps: [{ down: [{ actionId: Action.JumpByBars, options: { steps: 1 } }], up: [] }],
+		feedbacks: [],
 	},
 	toggleLoop: {
 		category: 'Playback',
