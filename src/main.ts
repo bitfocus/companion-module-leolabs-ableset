@@ -88,10 +88,10 @@ class ModuleInstance extends InstanceBase<Config> {
 				this.updateStatus(InstanceStatus.Ok)
 			})
 
-			this.oscServer.on('/heartbeat', () => {
+			this.oscServer.on('/heartbeat', (args, info) => {
 				if (!isConnected) {
 					isConnected = true
-					this.log('info', 'Got another heartbeat, connection re-established')
+					this.log('info', 'Got another heartbeat from ' + info.address + ', connection re-established.')
 					this.updateStatus(InstanceStatus.Ok)
 				}
 				handleHeartbeat()
