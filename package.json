@@ -12,19 +12,19 @@
 		"url": "git+https://github.com/bitfocus/companion-module-leolabs-ableset.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.6.0",
+		"@companion-module/base": "~1.12.1",
 		"lodash": "^4.17.21",
-		"node-osc": "^9.0.2",
-		"short-uuid": "^4.2.2"
+		"node-osc": "^9.1.7",
+		"short-uuid": "^5.2.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^1.4.1",
-		"@types/lodash": "^4.14.202",
-		"@types/node-osc": "^6.0.3",
-		"canvas": "^2.11.2",
-		"prettier": "^3.1.1",
-		"tsx": "^4.7.0",
-		"typescript": "^5.3.3"
+		"@companion-module/tools": "^2.3.0",
+		"@types/lodash": "^4.17.20",
+		"@types/node-osc": "^9.1.0",
+		"canvas": "^3.1.2",
+		"prettier": "^3.6.2",
+		"tsx": "^4.20.3",
+		"typescript": "^5.8.3"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json"
 }
