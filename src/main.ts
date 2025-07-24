@@ -25,6 +25,7 @@ interface Config {
 
 const NOISY_ADDRESSES = new Set([
 	'/heartbeat',
+	'/global/finePosition',
 	'/global/humanPosition',
 	'/global/beatsPosition',
 	'/global/currentMeasure',
