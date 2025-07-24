@@ -16,6 +16,7 @@ export const JUMP_MODES = [
 	{ id: 'quantized', label: 'Quantized' },
 	{ id: 'end-of-section', label: 'End of Section' },
 	{ id: 'end-of-song', label: 'End of Song' },
+	{ id: 'dynamic', label: 'Dynamic' },
 	{ id: 'manual', label: 'Manual' },
 ]
 
