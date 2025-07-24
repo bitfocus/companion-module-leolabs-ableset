@@ -5,7 +5,7 @@
 	"description": "Control AbleSet and View the Current State of Your Setlist",
 	"version": "1.6.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-modul-leolabse-ableset.git",
+	"repository": "git+https://github.com/bitfocus/companion-module-leolabs-ableset.git",
 	"bugs": "https://github.com/bitfocus/companion-module-leolabs-ableset/issues",
 	"maintainers": [
 		{
@@ -14,7 +14,7 @@
 		}
 	],
 	"runtime": {
-		"type": "node18",
+		"type": "node22",
 		"api": "nodejs-ipc",
 		"apiVersion": "0.0.0",
 		"entrypoint": "../dist/main.js"
