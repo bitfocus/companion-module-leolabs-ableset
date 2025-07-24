@@ -1,20 +1,19 @@
 import { InstanceBase, InstanceStatus, SomeCompanionConfigField, runEntrypoint } from '@companion-module/base'
 import { ArgumentType, Client, Server } from 'node-osc'
+import { debounce, throttle } from 'lodash'
 import shortUuid from 'short-uuid'
 
 import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 import { Action, Feedback } from './enums'
 import { presets } from './presets'
+import { getProgressIcon } from './icons'
+import { variables } from './variables'
+
 import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors'
 import { debounceGather } from './utils/debounce'
 import { makeRange } from './utils/range'
-import { variables } from './variables'
-import { getProgressIcon } from './icons'
-import { debounce, throttle } from 'lodash'
 import { parseOscCommands } from './utils/string-to-osc'
-
-/** The port that AbleSet is listening on */
-const SERVER_PORT = 39041
+import { getPort } from './utils/get-port'
 
 interface Config {
 	/** The hostname(s) or IP address(es) to connect to, comma-separated */
@@ -37,11 +36,15 @@ const NOISY_ADDRESSES = new Set([
 
 class ModuleInstance extends InstanceBase<Config> {
 	config: Config = { serverHost: '127.0.0.1', fineUpdates: true }
-	oscServer: Server | null = null
-	oscClients: Client[] = []
 
-	connectInterval: NodeJS.Timeout | null = null
-	cancelHeartbeat = () => {}
+	oscConnections: Array<{
+		host: string
+		port: number
+		isConnected: boolean
+		client: Client
+		server: Server
+		close: () => Promise<void>
+	}> = []
 
 	songs: string[] = []
 	sections: string[] = []
@@ -65,66 +68,93 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.updateStatus(InstanceStatus.Connecting)
 
 		try {
-			this.oscClients = config.serverHost.split(',').map((h) => new Client(h.trim(), 39051))
-			this.oscServer = new Server(39041, '0.0.0.0')
+			this.oscConnections = []
 
-			const serverStrings = this.config.serverHost.split(',').map((h) => `${h.trim()}:39051`)
-			this.log('info', `OSC client is sending to ${serverStrings.join(', ')}`)
+			for (const host of config.serverHost.split(',')) {
+				this.log('info', `Getting port for ${host}...`)
+				const port = await getPort()
+				this.log('info', `Got port for ${host}: ${port}`)
 
-			this.initOscListeners(this.oscServer)
+				const server = new Server(port, '0.0.0.0')
 
-			let isConnected = false
+				await new Promise<void>((res) => {
+					server.once('listening', () => {
+						this.log('info', `OSC server for ${host.trim()} is listening on port ${port}`)
+						res()
+					})
+				})
 
-			const handleHeartbeat = debounce(() => {
-				this.log('warn', 'Took too long between heartbeats, connection likely lost')
-				this.updateStatus(InstanceStatus.Disconnected, "Didn't receive a heartbeat in a while")
-				isConnected = false
-			}, 2500)
-
-			this.cancelHeartbeat = () => handleHeartbeat.cancel()
-
-			this.oscServer.once('/global/isPlaying', () => {
-				isConnected = true
-				this.log('info', 'Connection established')
-				this.updateStatus(InstanceStatus.Ok)
-			})
-
-			this.oscServer.on('/heartbeat', (args, info) => {
-				if (!isConnected) {
-					isConnected = true
-					this.log('info', 'Got another heartbeat from ' + info.address + ', connection re-established.')
-					this.updateStatus(InstanceStatus.Ok)
-				}
-				handleHeartbeat()
-			})
-
-			this.oscServer.on('error', (error) => {
-				this.log('error', String(error))
-				console.error('OSC Error:', error)
-				this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
-			})
-
-			const tryConnecting = () => {
-				this.log('info', 'Trying to connect to AbleSet...')
-				this.sendOsc(['/subscribe', 'auto', SERVER_PORT, 'Companion', config.fineUpdates ?? false])
-				this.sendOsc(['/getValues', SERVER_PORT])
+				this.oscConnections.push({
+					host: host.trim(),
+					port,
+					isConnected: false,
+					client: new Client(host.trim(), 39051),
+					server,
+					close: async () => {},
+				})
 			}
 
-			await new Promise<void>((res) => {
-				this.oscServer!.on('listening', () => {
-					this.log('info', `OSC server is listening on port ${SERVER_PORT}`)
-					res()
+			this.log(
+				'info',
+				`OSC clients: ${JSON.stringify(this.oscConnections.map((c) => ({ host: c.host, port: c.port })))}`,
+			)
+
+			for (const client of this.oscConnections) {
+				this.log('info', `Initializing client for ${client.host}`)
+
+				client.server.on('error', (error) => {
+					this.log('error', `OSC server for ${client.host} could not be initialized: ${String(error)}`)
+					this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 				})
-			})
 
-			handleHeartbeat()
-			tryConnecting()
+				this.initOscListeners(client.server)
 
-			this.connectInterval = setInterval(() => {
-				if (!isConnected) {
-					tryConnecting()
+				const handleHeartbeat = debounce(() => {
+					this.log('warn', `Took too long between heartbeats from ${client.host}, connection likely lost`)
+					client.isConnected = false
+					this.handleConnectionChange()
+				}, 3000)
+
+				client.server.on('message', () => {
+					if (!client.isConnected) {
+						this.log('info', `Got a message from ${client.host}, marking client as connected`)
+						client.isConnected = true
+						this.handleConnectionChange()
+					}
+
+					handleHeartbeat()
+				})
+
+				const tryConnecting = () => {
+					this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
+					client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
+					client.client.send(['/getValues'])
 				}
-			}, 2000)
+
+				tryConnecting()
+
+				const connectInterval = setInterval(() => {
+					if (!client.isConnected) {
+						tryConnecting()
+					}
+				}, 2000)
+
+				client.close = async () => {
+					this.log('info', `Closing connection to ${client.host}...`)
+
+					handleHeartbeat.cancel()
+					clearInterval(connectInterval)
+					client.client.send(['/unsubscribe'])
+
+					await new Promise<void>((res) => {
+						client.server.close(res)
+					})
+
+					await new Promise<void>((res) => {
+						client.client.close(res)
+					})
+				}
+			}
 		} catch (e: any) {
 			console.error('OSC Init Error:', e)
 			this.updateStatus(InstanceStatus.ConnectionFailure, String(e.message ?? e))
@@ -136,13 +166,30 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.updateVariableDefinitions() // export variable definitions
 	}
 
+	handleConnectionChange = () => {
+		this.log(
+			'info',
+			'Connection status: ' +
+				JSON.stringify(this.oscConnections.map((c) => ({ ip: c.host, isConnected: c.isConnected }))),
+		)
+
+		const connectedClients = this.oscConnections.filter((c) => c.isConnected)
+		const message = `${connectedClients.length} of ${this.oscConnections.length} connected`
+
+		if (connectedClients.length) {
+			this.updateStatus(InstanceStatus.Ok, message)
+		} else {
+			this.updateStatus(InstanceStatus.Disconnected, message)
+		}
+	}
+
 	sendOsc(message: [string, ...ArgumentType[]]) {
-		if (this.oscClients.length) {
+		if (this.oscConnections.length) {
 			// Give each message a unique UUID
 			message.push('uuid=' + shortUuid().new())
-			this.log('info', 'sending message: ' + JSON.stringify(message))
-			for (const client of this.oscClients) {
-				client.send(message)
+			this.log('info', 'sending message ' + JSON.stringify(message) + ' to clients ' + this.config.serverHost)
+			for (const client of this.oscConnections) {
+				client.client.send(message)
 			}
 		} else {
 			this.log('error', "OSC client doesn't exist")
@@ -515,15 +562,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	// When module gets deleted
 	async destroy() {
 		this.log('debug', 'destroying module...')
-		this.sendOsc(['/unsubscribe'])
-
-		if (this.connectInterval) {
-			clearInterval(this.connectInterval)
-		}
-
-		this.cancelHeartbeat()
-		await Promise.all(this.oscClients.map((c) => new Promise<void>((res) => c.close(res))))
-		await new Promise<void>((res) => this.oscServer?.close(res))
+		await Promise.all(this.oscConnections.map((c) => c.close()))
 		this.log('debug', 'module destroyed')
 	}
 
