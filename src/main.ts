@@ -99,6 +99,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				`OSC clients: ${JSON.stringify(this.oscConnections.map((c) => ({ host: c.host, port: c.port })))}`,
 			)
 
+			this.setVariableValues({ totalHosts: this.oscConnections.length })
+
 			for (const client of this.oscConnections) {
 				this.log('info', `Initializing client for ${client.host}`)
 
@@ -177,10 +179,11 @@ class ModuleInstance extends InstanceBase<Config> {
 				JSON.stringify(this.oscConnections.map((c) => ({ ip: c.host, isConnected: c.isConnected }))),
 		)
 
-		const connectedClients = this.oscConnections.filter((c) => c.isConnected)
-		const message = `${connectedClients.length} of ${this.oscConnections.length} connected`
+		const connectedHosts = this.oscConnections.filter((c) => c.isConnected)
+		const message = `${connectedHosts.length} of ${this.oscConnections.length} connected`
+		this.setVariableValues({ connectedHosts: connectedHosts.length, totalHosts: this.oscConnections.length })
 
-		if (connectedClients.length) {
+		if (connectedHosts.length > 0) {
 			this.updateStatus(InstanceStatus.Ok, message)
 		} else {
 			this.updateStatus(InstanceStatus.Disconnected, message)

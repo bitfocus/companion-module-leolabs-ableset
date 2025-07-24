@@ -2,6 +2,9 @@ import { CompanionVariableDefinition } from '@companion-module/base'
 import { SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 
 export const variables: CompanionVariableDefinition[] = [
+	{ variableId: 'totalHosts', name: 'Total Hosts' },
+	{ variableId: 'connectedHosts', name: 'Connected Hosts' },
+
 	{ variableId: 'beatsPosition', name: 'Playhead Position in Beats' },
 	{ variableId: 'finePosition', name: 'Fine Playhead Position in Beats, Needs "Fine Updates" Option to be Enabled' },
 	{ variableId: 'humanPosition', name: 'Playhead Position in Bars.Beats' },
