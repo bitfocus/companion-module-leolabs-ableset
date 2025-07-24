@@ -26,8 +26,8 @@ export const parseArgument = (arg: string): Argument => {
 		return { type: 'boolean', value: true }
 	} else if (arg === 'false') {
 		return { type: 'boolean', value: false }
-	} else if (isStringQuote(arg[0]!) && isStringQuote(arg[arg.length - 1]!)) {
-		const stringQuote = arg[0]!
+	} else if (isStringQuote(arg[0]) && isStringQuote(arg[arg.length - 1])) {
+		const stringQuote = arg[0]
 		return {
 			type: 'string',
 			value: arg.substring(1, arg.length - 1).replaceAll(`\\${stringQuote}`, stringQuote),
@@ -70,7 +70,7 @@ export const parseOscCommands = (input: string): OscCommand[] => {
 	input = input.trim()
 
 	for (let i = 0; i < input.length; i++) {
-		const char = input[i]!
+		const char = input[i]
 
 		switch (state) {
 			case State.InHost: {

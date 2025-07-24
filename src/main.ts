@@ -277,7 +277,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on(
 			'/global/finePosition',
-			throttle(([, beats]) => {
+			throttle(([, beats]: ArgumentType[]) => {
 				this.setVariableValues({ finePosition: Number(beats) })
 				this.checkFeedbacks(Feedback.SongProgress, Feedback.SectionProgress, Feedback.SectionProgressByNumber)
 			}, 40),
@@ -562,7 +562,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	// When module gets deleted
 	async destroy() {
 		this.log('debug', 'destroying module...')
-		await Promise.all(this.oscConnections.map((c) => c.close()))
+		await Promise.all(this.oscConnections.map(async (c) => c.close()))
 		this.log('debug', 'module destroyed')
 	}
 

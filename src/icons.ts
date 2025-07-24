@@ -29,7 +29,7 @@ export const PROGRESS = {
 }
 
 /** Returns a progress icon based on the input from 0-1 */
-export const getProgressIcon = (progress: number, style: keyof typeof PROGRESS = 'full') => {
+export const getProgressIcon = (progress: number, style: keyof typeof PROGRESS = 'full'): string => {
 	const index = Math.round(clamp(progress, 0, 1) * (PROGRESS[style].length - 1))
 	return PROGRESS[style][index]
 }
