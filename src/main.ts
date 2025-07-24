@@ -126,9 +126,13 @@ class ModuleInstance extends InstanceBase<Config> {
 				})
 
 				const tryConnecting = () => {
-					this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
-					client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
-					client.client.send(['/getValues'])
+					try {
+						this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
+						client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
+						client.client.send(['/getValues'])
+					} catch (e) {
+						this.log('error', `Couldn't send subscribe command to ${client.host}: ${String(e)}`)
+					}
 				}
 
 				tryConnecting()
