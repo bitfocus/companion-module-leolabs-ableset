@@ -194,9 +194,9 @@ class ModuleInstance extends InstanceBase<Config> {
 		if (this.oscConnections.length) {
 			// Give each message a unique UUID
 			message.push('uuid=' + shortUuid().new())
-			this.log('info', 'sending message ' + JSON.stringify(message) + ' to clients ' + this.config.serverHost)
 			for (const client of this.oscConnections) {
-				client.client.send(message)
+				this.log('info', 'sending message ' + JSON.stringify(message) + ' to client ' + client.host)
+				client.client.send(structuredClone(message))
 			}
 		} else {
 			this.log('error', "OSC client doesn't exist")
