@@ -1052,8 +1052,8 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: ({ options }) => {
 					this.sendOsc([
-						`/trackGroups/${options.group}/${options.type}`,
-						options.value === 'false' ? 0 : String(options.value),
+						`/mixer/${String(options.group).toLowerCase()}/${options.type}`,
+						options.value === 'false' ? 0 : options.value === 'true' ? 1 : String(options.value),
 					])
 				},
 			},
