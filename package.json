@@ -22,7 +22,7 @@
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.12.1",
-		"lodash": "^4.17.21",
+		"lodash": "^4.17.23",
 		"node-osc": "^9.1.7",
 		"short-uuid": "^5.2.0"
 	},
