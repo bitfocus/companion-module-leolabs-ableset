@@ -708,9 +708,13 @@ class ModuleInstance extends InstanceBase<Config> {
 						type: 'textinput',
 						label: 'Song Name',
 						required: true,
+						useVariables: true,
 					},
 				],
-				callback: async (event) => this.sendOsc(['/setlist/jumpToSong', String(event.options.name)]),
+				callback: async (event, ctx) => {
+					const name = await ctx.parseVariablesInString(String(event.options.name))
+					this.sendOsc(['/setlist/jumpToSong', { type: 'string', value: name }])
+				},
 			},
 			[Action.JumpBySongs]: {
 				name: 'Jump by Songs',
@@ -811,9 +815,13 @@ class ModuleInstance extends InstanceBase<Config> {
 						type: 'textinput',
 						label: 'Section Name',
 						required: true,
+						useVariables: true,
 					},
 				],
-				callback: async (event) => this.sendOsc(['/setlist/jumpToSection', String(event.options.name)]),
+				callback: async (event, ctx) => {
+					const name = await ctx.parseVariablesInString(String(event.options.name))
+					this.sendOsc(['/setlist/jumpToSection', { type: 'string', value: name }])
+				},
 			},
 			[Action.JumpBySections]: {
 				name: 'Jump by Sections',
@@ -1023,6 +1031,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'group',
 						label: 'Track Group',
 						type: 'textinput',
+						useVariables: true,
 					},
 					{
 						id: 'type',
@@ -1046,10 +1055,11 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 'toggle',
 					},
 				],
-				callback: ({ options }) => {
+				callback: async ({ options }, ctx) => {
+					const value = await ctx.parseVariablesInString(String(options.value))
 					this.sendOsc([
 						`/mixer/${String(options.group).toLowerCase()}/${options.type}`,
-						options.value === 'false' ? 0 : options.value === 'true' ? 1 : String(options.value),
+						value === 'false' ? 0 : value === 'true' ? 1 : String(value),
 					])
 				},
 			},
@@ -1064,11 +1074,13 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'command',
 						label: 'OSC Commands',
 						type: 'textinput',
+						useVariables: true,
 						regex: '^\\/(.+)',
 					},
 				],
-				callback: async (event) => {
-					const commands = parseOscCommands(String(event.options.command))
+				callback: async (event, ctx) => {
+					const parsedInput = await ctx.parseVariablesInString(String(event.options.command))
+					const commands = parseOscCommands(parsedInput)
 
 					for (const command of commands) {
 						let customSleep: number | null = null
