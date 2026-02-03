@@ -1,6 +1,6 @@
 {
 	"name": "companion-module-leolabs-ableset",
-	"version": "1.7.2",
+	"version": "1.7.3",
 	"main": "dist/main.js",
 	"scripts": {
 		"postinstall": "husky",
