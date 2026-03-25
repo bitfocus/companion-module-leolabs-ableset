@@ -110,7 +110,6 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'safeMode', name: 'Safe Mode' },
 	{ variableId: 'alwaysStopOnSongEnd', name: 'Always Stop on Song End' },
 	{ variableId: 'autoJumpToNextSong', name: 'Autojump to the Next Song' },
-	{ variableId: 'autoLoopCurrentSection', name: 'Autoloop the Current Section' },
 	{ variableId: 'countIn', name: 'Count-In' },
 	{ variableId: 'countInSoloClick', name: 'Solo Click During Count-In' },
 	{ variableId: 'countInDuration', name: 'Count-In Duration' },

@@ -9,7 +9,6 @@ export const BOOLEAN_SETTINGS = [
 	{ id: 'autoplay', label: 'Autoplay' },
 	{ id: 'autoBackToArrangementOnSongJump', label: 'Reset Tracks Back to Arrangement on Song Jump' },
 	{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
-	{ id: 'autoLoopCurrentSection', label: 'Autoloop the Current Section' },
 	{ id: 'autoReEnableAutomationOnSongJump', label: 'Re-Enable Automation on Song Jump' },
 	{ id: 'countIn', label: 'Count-In' },
 	{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
