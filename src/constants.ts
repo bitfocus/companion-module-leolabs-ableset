@@ -3,13 +3,21 @@ export const SECTION_PRESET_COUNT = 48
 export const RELATIVE_SECTION_PRESETS_COUNT = 8
 
 export const BOOLEAN_SETTINGS = [
-	{ id: 'autoplay', label: 'Autoplay' },
-	{ id: 'safeMode', label: 'Safe Mode' },
+	{ id: 'ableNet', label: 'AbleNet Enabled' },
+	{ id: 'ableNetDriftCorrection', label: 'AbleNet Drift Correction' },
 	{ id: 'alwaysStopOnSongEnd', label: 'Always Stop on Song End' },
+	{ id: 'autoplay', label: 'Autoplay' },
+	{ id: 'autoBackToArrangementOnSongJump', label: 'Reset Tracks Back to Arrangement on Song Jump' },
 	{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
 	{ id: 'autoLoopCurrentSection', label: 'Autoloop the Current Section' },
+	{ id: 'autoReEnableAutomationOnSongJump', label: 'Re-Enable Automation on Song Jump' },
 	{ id: 'countIn', label: 'Count-In' },
 	{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
+	{ id: 'countInDuration', label: 'Count-In Duration' },
+	{ id: 'jumpMode', label: 'Jump Mode' },
+	{ id: 'removePlayedSongs', label: 'Remove Played Songs Automatically' },
+	{ id: 'safeMode', label: 'Safe Mode' },
+	{ id: 'showStopButton', label: 'Stop by Default Instead of Pausing' },
 ]
 
 export const JUMP_MODES = [

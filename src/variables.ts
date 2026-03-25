@@ -104,6 +104,8 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'remainingTimeInSong', name: 'Remaining Time in Song' },
 	{ variableId: 'remainingTimeInSet', name: 'Remaining Time in Set' },
 
+	{ variableId: 'ableNet', name: 'AbleNet Enabled' },
+	{ variableId: 'ableNetDriftCorrection', name: 'AbleNet Drift Correction' },
 	{ variableId: 'autoplay', name: 'Autoplay' },
 	{ variableId: 'safeMode', name: 'Safe Mode' },
 	{ variableId: 'alwaysStopOnSongEnd', name: 'Always Stop on Song End' },
@@ -113,4 +115,8 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'countInSoloClick', name: 'Solo Click During Count-In' },
 	{ variableId: 'countInDuration', name: 'Count-In Duration' },
 	{ variableId: 'jumpMode', name: 'Jump Mode' },
+	{ variableId: 'removePlayedSongs', name: 'Remove Played Songs Automatically' },
+	{ variableId: 'autoReEnableAutomationOnSongJump', name: 'Re-Enable Automation on Song Jump' },
+	{ variableId: 'autoBackToArrangementOnSongJump', name: 'Reset Tracks Back to Arrangement on Song Jump' },
+	{ variableId: 'showStopButton', name: 'Stop by Default Instead of Pausing' },
 ]

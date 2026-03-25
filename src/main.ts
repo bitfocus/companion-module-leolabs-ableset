@@ -514,6 +514,34 @@ class ModuleInstance extends InstanceBase<Config> {
 		//#endregion
 
 		//#region settings
+		server.on('/settings/ableNet', ([, value]) => {
+			this.setVariableValues({ ableNet: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
+		})
+		server.on('/settings/ableNetDriftCorrection', ([, value]) => {
+			this.setVariableValues({ ableNetDriftCorrection: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
+		})
+		server.on('/settings/removePlayedSongs', ([, value]) => {
+			this.setVariableValues({ removePlayedSongs: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
+		})
+		server.on('/settings/autoReEnableAutomationOnSongJump', ([, value]) => {
+			this.setVariableValues({
+				autoReEnableAutomationOnSongJump: Boolean(value),
+			})
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
+		})
+		server.on('/settings/autoBackToArrangementOnSongJump', ([, value]) => {
+			this.setVariableValues({
+				autoBackToArrangementOnSongJump: Boolean(value),
+			})
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
+		})
+		server.on('/settings/showStopButton', ([, value]) => {
+			this.setVariableValues({ showStopButton: Boolean(value) })
+			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
+		})
 		server.on('/settings/autoplay', ([, value]) => {
 			this.setVariableValues({ autoplay: Boolean(value) })
 			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
@@ -1659,15 +1687,21 @@ class ModuleInstance extends InstanceBase<Config> {
 						label: 'Setting',
 						type: 'dropdown',
 						choices: [
-							{ id: 'autoplay', label: 'Autoplay' },
-							{ id: 'safeMode', label: 'Safe Mode' },
+							{ id: 'ableNet', label: 'AbleNet Enabled' },
+							{ id: 'ableNetDriftCorrection', label: 'AbleNet Drift Correction' },
 							{ id: 'alwaysStopOnSongEnd', label: 'Always Stop on Song End' },
+							{ id: 'autoplay', label: 'Autoplay' },
+							{ id: 'autoBackToArrangementOnSongJump', label: 'Reset Tracks Back to Arrangement on Song Jump' },
 							{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
 							{ id: 'autoLoopCurrentSection', label: 'Autoloop the Current Section' },
+							{ id: 'autoReEnableAutomationOnSongJump', label: 'Re-Enable Automation on Song Jump' },
 							{ id: 'countIn', label: 'Count-In' },
 							{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
 							{ id: 'countInDuration', label: 'Count-In Duration' },
 							{ id: 'jumpMode', label: 'Jump Mode' },
+							{ id: 'removePlayedSongs', label: 'Remove Played Songs Automatically' },
+							{ id: 'safeMode', label: 'Safe Mode' },
+							{ id: 'showStopButton', label: 'Stop by Default Instead of Pausing' },
 						],
 						default: 'autoplay',
 					},
