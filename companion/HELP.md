@@ -1,6 +1,7 @@
 ## AbleSet
 
-This module allows you to control AbleSet from Companion.
+This module allows you to control AbleSet from Companion. It's compatible with
+AbleSet 3, but most features will also work with AbleSet 2.
 
 If you run Companion on the same machine as AbleSet, you don't have to configure anything.
 
