@@ -1,19 +1,18 @@
-import { InstanceBase, InstanceStatus, SomeCompanionConfigField, runEntrypoint } from '@companion-module/base'
-import { ArgumentType, Client, Server } from 'node-osc'
+import { InstanceBase, InstanceStatus, runEntrypoint, type SomeCompanionConfigField } from '@companion-module/base'
 import { debounce, throttle } from 'lodash'
+import { type ArgumentType, Client, Server } from 'node-osc'
 import shortUuid from 'short-uuid'
 
 import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 import { Action, Feedback } from './enums'
-import { presets } from './presets'
 import { getProgressIcon } from './icons'
-import { variables } from './variables'
-
+import { presets } from './presets'
 import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors'
 import { debounceGather } from './utils/debounce'
+import { getPort } from './utils/get-port'
 import { makeRange } from './utils/range'
 import { parseOscCommands } from './utils/string-to-osc'
-import { getPort } from './utils/get-port'
+import { variables } from './variables'
 
 interface Config {
 	/** The hostname(s) or IP address(es) to connect to, comma-separated */
@@ -33,6 +32,14 @@ const NOISY_ADDRESSES = new Set([
 	'/setlist/remainingTimeInSet',
 	'/timecode/tc',
 ])
+
+const getErrorMessage = (e: unknown) => {
+	if (e instanceof Error) {
+		return e.message
+	} else {
+		return String(e)
+	}
+}
 
 class ModuleInstance extends InstanceBase<Config> {
 	config: Config = { serverHost: '127.0.0.1', fineUpdates: true }
@@ -56,10 +63,6 @@ class ModuleInstance extends InstanceBase<Config> {
 
 	soloedTrackGroups = new Set<string>()
 	mutedTrackGroups = new Set<string>()
-
-	constructor(internal: any) {
-		super(internal)
-	}
 
 	async init(config: Config) {
 		this.log('info', 'Initializing...')
@@ -133,7 +136,7 @@ class ModuleInstance extends InstanceBase<Config> {
 						client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
 						client.client.send(['/getValues'])
 					} catch (e) {
-						this.log('error', `Couldn't send subscribe command to ${client.host}: ${String(e)}`)
+						this.log('error', `Couldn't send subscribe command to ${client.host}: ${getErrorMessage(e)}`)
 					}
 				}
 
@@ -161,9 +164,9 @@ class ModuleInstance extends InstanceBase<Config> {
 					})
 				}
 			}
-		} catch (e: any) {
+		} catch (e) {
 			console.error('OSC Init Error:', e)
-			this.updateStatus(InstanceStatus.ConnectionFailure, String(e.message ?? e))
+			this.updateStatus(InstanceStatus.ConnectionFailure, getErrorMessage(e))
 		}
 
 		this.updateActions() // export actions
@@ -176,12 +179,20 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.log(
 			'info',
 			'Connection status: ' +
-				JSON.stringify(this.oscConnections.map((c) => ({ ip: c.host, isConnected: c.isConnected }))),
+				JSON.stringify(
+					this.oscConnections.map((c) => ({
+						ip: c.host,
+						isConnected: c.isConnected,
+					})),
+				),
 		)
 
 		const connectedHosts = this.oscConnections.filter((c) => c.isConnected)
 		const message = `${connectedHosts.length} of ${this.oscConnections.length} connected`
-		this.setVariableValues({ connectedHosts: connectedHosts.length, totalHosts: this.oscConnections.length })
+		this.setVariableValues({
+			connectedHosts: connectedHosts.length,
+			totalHosts: this.oscConnections.length,
+		})
 
 		if (connectedHosts.length > 0) {
 			this.updateStatus(InstanceStatus.Ok, message)
@@ -290,7 +301,10 @@ class ModuleInstance extends InstanceBase<Config> {
 			}, 40),
 		)
 		server.on('/global/humanPosition', ([, bars, beats]) => {
-			this.setVariableValues({ humanPosition: `${bars ?? 0}.${beats ?? 0}`, humanPositionBeats: Number(beats ?? 0) })
+			this.setVariableValues({
+				humanPosition: `${bars ?? 0}.${beats ?? 0}`,
+				humanPositionBeats: Number(beats ?? 0),
+			})
 			this.checkFeedbacks(Feedback.IsBeat)
 			this.updateMeasureOrPosition()
 		})
@@ -402,7 +416,9 @@ class ModuleInstance extends InstanceBase<Config> {
 			)
 		})
 		server.on('/setlist/activeSectionStart', ([, activeSectionStart]) => {
-			this.setVariableValues({ activeSectionStart: Number(activeSectionStart) })
+			this.setVariableValues({
+				activeSectionStart: Number(activeSectionStart),
+			})
 			this.debouncedCheckFeedbacks(Feedback.SectionProgress, Feedback.SectionProgressByNumber)
 		})
 		server.on('/setlist/activeSectionEnd', ([, activeSectionEnd]) => {
@@ -556,10 +572,6 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 		server.on('/settings/autoJumpToNextSong', ([, value]) => {
 			this.setVariableValues({ autoJumpToNextSong: Boolean(value) })
-			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
-		})
-		server.on('/settings/autoLoopCurrentSection', ([, value]) => {
-			this.setVariableValues({ autoLoopCurrentSection: Boolean(value) })
 			this.debouncedCheckFeedbacks(Feedback.SettingEqualsValue)
 		})
 		server.on('/settings/countIn', ([, value]) => {
@@ -986,18 +998,6 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 				callback: async (event) => this.sendOsc(['/settings/autoJumpToNextSong', Number(event.options.value)]),
 			},
-			[Action.SetAutoLoopCurrentSection]: {
-				name: 'Set Autoloop the Current Section',
-				options: [
-					{
-						id: 'value',
-						label: 'Autoloop the Current Section',
-						type: 'checkbox',
-						default: true,
-					},
-				],
-				callback: async (event) => this.sendOsc(['/settings/autoLoopCurrentSection', Number(event.options.value)]),
-			},
 			[Action.SetCountIn]: {
 				name: 'Set Count-In',
 				options: [
@@ -1288,7 +1288,9 @@ class ModuleInstance extends InstanceBase<Config> {
 						: Number(options.sectionNumber) - 1
 					const color = this.sectionColors[sectionNumber]
 					const style = {} as Record<string, number>
-					;(options.colorProps as string[])?.forEach((prop) => (style[prop] = color))
+					;(options.colorProps as string[])?.forEach((prop) => {
+						style[prop] = color
+					})
 					return style
 				},
 				options: [
@@ -1384,7 +1386,7 @@ class ModuleInstance extends InstanceBase<Config> {
 				type: 'advanced',
 				name: 'Section Progress Background By Section Number',
 				callback: ({ options }) => {
-					let totalPercent
+					let totalPercent: number
 					const relativeSectionIndex = options.relative
 						? Number(options.sectionNumber)
 						: Number(options.sectionNumber) - this.activeSectionIndex - 1
@@ -1693,7 +1695,6 @@ class ModuleInstance extends InstanceBase<Config> {
 							{ id: 'autoplay', label: 'Autoplay' },
 							{ id: 'autoBackToArrangementOnSongJump', label: 'Reset Tracks Back to Arrangement on Song Jump' },
 							{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
-							{ id: 'autoLoopCurrentSection', label: 'Autoloop the Current Section' },
 							{ id: 'autoReEnableAutomationOnSongJump', label: 'Re-Enable Automation on Song Jump' },
 							{ id: 'countIn', label: 'Count-In' },
 							{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
@@ -1705,7 +1706,13 @@ class ModuleInstance extends InstanceBase<Config> {
 						],
 						default: 'autoplay',
 					},
-					{ id: 'value', label: 'Value', type: 'textinput', default: 'true', required: true },
+					{
+						id: 'value',
+						label: 'Value',
+						type: 'textinput',
+						default: 'true',
+						required: true,
+					},
 				],
 			},
 

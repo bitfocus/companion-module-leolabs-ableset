@@ -1,4 +1,4 @@
-import { CompanionVariableDefinition } from '@companion-module/base'
+import type { CompanionVariableDefinition } from '@companion-module/base'
 import { SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 
 export const variables: CompanionVariableDefinition[] = [
