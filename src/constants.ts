@@ -3,11 +3,11 @@ export const SECTION_PRESET_COUNT = 48
 export const RELATIVE_SECTION_PRESETS_COUNT = 8
 
 export const BOOLEAN_SETTINGS = [
-	{ id: 'ableNet', label: 'AbleNet Enabled' },
-	{ id: 'ableNetDriftCorrection', label: 'AbleNet Drift Correction' },
-	{ id: 'alwaysStopOnSongEnd', label: 'Always Stop on Song End' },
+	{ id: 'ableNet', label: 'AbleNet' },
+	{ id: 'ableNetDriftCorrection', label: 'Drift Correction' },
+	{ id: 'alwaysStopOnSongEnd', label: 'Stop on Song End' },
 	{ id: 'autoplay', label: 'Autoplay' },
-	{ id: 'autoBackToArrangementOnSongJump', label: 'Reset Tracks Back to Arrangement on Song Jump' },
+	{ id: 'autoBackToArrangementOnSongJump', label: 'Back to Arrangement on Song Jump' },
 	{ id: 'autoJumpToNextSong', label: 'Autojump to the Next Song' },
 	{ id: 'autoReEnableAutomationOnSongJump', label: 'Re-Enable Automation on Song Jump' },
 	{ id: 'countIn', label: 'Count-In' },
