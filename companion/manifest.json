@@ -1,6 +1,6 @@
 {
 	"id": "leolabs-ableset",
-	"name": "AbleSet",
+	"name": "leolabs-ableset",
 	"shortname": "AbleSet",
 	"description": "Control AbleSet and View the Current State of Your Setlist",
 	"version": "1.8.0",
