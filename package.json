@@ -6,9 +6,9 @@
 		"postinstall": "husky",
 		"format": "prettier -w .",
 		"package": "yarn build && companion-module-build",
-		"build": "yarn build:main && tsx scripts/inline-icons.ts",
-		"build:main": "tsc -p tsconfig.json",
-		"dev": "tsc -p tsconfig.json --watch",
+		"build": "rimraf dist && yarn build:main && tsx scripts/inline-icons.ts",
+		"build:main": "tsc -p tsconfig.build.json",
+		"dev": "tsc -p tsconfig.build.json --watch",
 		"lint:raw": "eslint",
 		"lint": "yarn lint:raw ."
 	},
