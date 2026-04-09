@@ -30,6 +30,7 @@
 	"devDependencies": {
 		"@companion-module/tools": "^2.6.1",
 		"@types/lodash": "^4.17.20",
+		"@types/node": "^22.19.3",
 		"@types/node-osc": "^9.1.0",
 		"canvas": "^3.1.2",
 		"eslint": "^9.24.0",
