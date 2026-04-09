@@ -18,7 +18,7 @@
 		"url": "git+https://github.com/bitfocus/companion-module-leolabs-ableset.git"
 	},
 	"engines": {
-		"node": ">=17"
+		"node": "^22.20"
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.12.1",
