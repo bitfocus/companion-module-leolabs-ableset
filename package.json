@@ -6,9 +6,9 @@
 		"postinstall": "husky",
 		"format": "prettier -w .",
 		"package": "yarn build && companion-module-build",
-		"build": "yarn build:main && tsx scripts/inline-icons.ts",
-		"build:main": "tsc -p tsconfig.json",
-		"dev": "tsc -p tsconfig.json --watch",
+		"build": "rimraf dist && yarn build:main && tsx scripts/inline-icons.ts",
+		"build:main": "tsc -p tsconfig.build.json",
+		"dev": "tsc -p tsconfig.build.json --watch",
 		"lint:raw": "eslint",
 		"lint": "yarn lint:raw ."
 	},
@@ -18,7 +18,8 @@
 		"url": "git+https://github.com/bitfocus/companion-module-leolabs-ableset.git"
 	},
 	"engines": {
-		"node": ">=17"
+		"node": "^22.20",
+		"yarn": "^4"
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.12.1",
@@ -29,6 +30,7 @@
 	"devDependencies": {
 		"@companion-module/tools": "^2.6.1",
 		"@types/lodash": "^4.17.20",
+		"@types/node": "^22.19.3",
 		"@types/node-osc": "^9.1.0",
 		"canvas": "^3.1.2",
 		"eslint": "^9.24.0",
@@ -48,5 +50,6 @@
 		"*.{ts,tsx,js,jsx}": [
 			"yarn lint:raw --fix"
 		]
-	}
+	},
+	"packageManager": "yarn@4.12.0"
 }
