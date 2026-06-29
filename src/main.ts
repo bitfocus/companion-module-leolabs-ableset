@@ -1,6 +1,6 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
 import { debounce, throttle } from 'es-toolkit'
-import { type ArgumentType, Client, Server } from 'node-osc'
+import { Client, Server } from 'node-osc'
 import shortUuid from 'short-uuid'
 
 import {
@@ -12,13 +12,14 @@ import {
 } from './constants.js'
 import { Action, Feedback } from './enums.js'
 import { getProgressIcon } from './icons.js'
-import { presets, presetStructure } from './presets.js'
+import { presetStructure, presets } from './presets.js'
+import type { ArgumentType } from './types/osc.js'
+import { upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12 } from './upgrades.js'
 import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors.js'
 import { debounceGather } from './utils/debounce.js'
 import { getPort } from './utils/get-port.js'
 import { makeRange } from './utils/range.js'
 import { parseOscCommands } from './utils/string-to-osc.js'
-import { upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12 } from './upgrades.js'
 import { variables } from './variables.js'
 
 export const UpgradeScripts = [upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12]
@@ -142,8 +143,8 @@ export default class ModuleInstance extends InstanceBase {
 				const tryConnecting = () => {
 					try {
 						this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
-						client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
-						client.client.send(['/getValues'])
+						void client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
+						void client.client.send(['/getValues'])
 					} catch (e) {
 						this.log('error', `Couldn't send subscribe command to ${client.host}: ${getErrorMessage(e)}`)
 					}
@@ -162,15 +163,10 @@ export default class ModuleInstance extends InstanceBase {
 
 					handleHeartbeat.cancel()
 					clearInterval(connectInterval)
-					client.client.send(['/unsubscribe'])
+					void client.client.send(['/unsubscribe'])
 
-					await new Promise<void>((res) => {
-						client.server.close(res)
-					})
-
-					await new Promise<void>((res) => {
-						client.client.close(res)
-					})
+					await client.server.close()
+					await client.client.close()
 				}
 			}
 		} catch (e) {
@@ -216,7 +212,7 @@ export default class ModuleInstance extends InstanceBase {
 			message.push('uuid=' + shortUuid().new())
 			for (const client of this.oscConnections) {
 				this.log('info', 'sending message ' + JSON.stringify(message) + ' to client ' + client.host)
-				client.client.send(structuredClone(message))
+				void client.client.send(structuredClone(message))
 			}
 		} else {
 			this.log('error', "OSC client doesn't exist")
@@ -387,7 +383,7 @@ export default class ModuleInstance extends InstanceBase {
 			this.updateSections()
 		})
 		server.on('/setlist/sectionColors', ([, ...colors]) => {
-			this.sectionColors = colors.map((c) => COLORS[(c as string) ?? 'black'])
+			this.sectionColors = colors.map((c: string) => COLORS[c ?? 'black'])
 			this.debouncedCheckFeedbacks(Feedback.SectionColor)
 		})
 		server.on('/setlist/activeSongName', ([, activeSongName]) => {

@@ -1,4 +1,4 @@
-import type { Argument } from 'node-osc'
+import type { Argument } from '../types/osc.js'
 
 export interface OscCommand {
 	host?: string

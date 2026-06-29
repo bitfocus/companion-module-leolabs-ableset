@@ -25,13 +25,12 @@
 	"dependencies": {
 		"@companion-module/base": "2.0.4",
 		"es-toolkit": "^1.49.0",
-		"node-osc": "^9.1.7",
+		"node-osc": "^11.6.0",
 		"short-uuid": "^5.2.0"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^3.0.1",
 		"@types/node": "^22.19.3",
-		"@types/node-osc": "^9.1.0",
 		"canvas": "^3.1.2",
 		"eslint": "^9.36.0",
 		"husky": "^9.1.7",
