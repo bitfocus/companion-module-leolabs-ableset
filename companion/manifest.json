@@ -5,7 +5,7 @@
 	"name": "leolabs-ableset",
 	"shortname": "AbleSet",
 	"description": "Control AbleSet and view the current state of your setlist",
-	"version": "1.8.2",
+	"version": "1.9.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-leolabs-ableset.git",
 	"bugs": "https://github.com/bitfocus/companion-module-leolabs-ableset/issues",
