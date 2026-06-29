@@ -1,7 +1,8 @@
 import type {
-	CompanionButtonPresetDefinition,
 	CompanionButtonStyleProps,
+	CompanionPresetDefinition,
 	CompanionPresetDefinitions,
+	CompanionPresetSection,
 } from '@companion-module/base'
 import {
 	BOOLEAN_SETTINGS,
@@ -59,13 +60,17 @@ const defaultStyle: Omit<CompanionButtonStyleProps, 'text'> = {
 	size: '18',
 } as const
 
-const songPresets: CompanionPresetDefinitions = Object.fromEntries(
+/** A preset definition with a transient `category` used to build the preset structure */
+type PresetWithCategory = CompanionPresetDefinition & { category: string }
+type PresetsWithCategory = Record<string, PresetWithCategory>
+
+const songPresets: PresetsWithCategory = Object.fromEntries(
 	makeRange(SONG_PRESET_COUNT).map((i) => [
 		`song${i + 1}`,
 		{
 			category: 'Songs',
 			name: `Song ${i + 1}`,
-			type: 'button',
+			type: 'simple',
 			previewStyle: { ...defaultSongStyle, text: `Song ${i + 1}` },
 			style: { ...defaultSongStyle, text: `$(AbleSet:song${i + 1}Name)` },
 			steps: [
@@ -90,13 +95,13 @@ const songPresets: CompanionPresetDefinitions = Object.fromEntries(
 	]),
 )
 
-const sectionPresets: CompanionPresetDefinitions = Object.fromEntries(
+const sectionPresets: PresetsWithCategory = Object.fromEntries(
 	makeRange(SECTION_PRESET_COUNT).map((i) => [
 		`section${i + 1}`,
 		{
 			category: 'Sections',
 			name: `Section ${i + 1}`,
-			type: 'button',
+			type: 'simple',
 			previewStyle: { ...defaultSongStyle, text: `Section ${i + 1}` },
 			style: { ...defaultSongStyle, text: `$(AbleSet:section${i + 1}Name)` },
 			steps: [
@@ -135,11 +140,11 @@ const sectionPresets: CompanionPresetDefinitions = Object.fromEntries(
 	]),
 )
 
-const nextPrevSongs: CompanionPresetDefinitions = {
+const nextPrevSongs: PresetsWithCategory = {
 	currentSong: {
 		category: 'Jump Songs',
 		name: 'Current Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: {
 			...defaultSongStyle,
 			bgcolor: COLOR_GREEN_500,
@@ -172,7 +177,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong1: {
 		category: 'Jump Songs',
 		name: 'Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName)` },
 		steps: [
@@ -197,7 +202,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong2: {
 		category: 'Jump Songs',
 		name: '2nd Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `2nd Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName2)` },
 		steps: [
@@ -222,7 +227,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong3: {
 		category: 'Jump Songs',
 		name: '3rd Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `3rd Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName3)` },
 		steps: [
@@ -247,7 +252,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong4: {
 		category: 'Jump Songs',
 		name: '4th Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `4th Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName4)` },
 		steps: [
@@ -272,7 +277,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong5: {
 		category: 'Jump Songs',
 		name: '5th Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `5th Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName5)` },
 		steps: [
@@ -297,7 +302,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong6: {
 		category: 'Jump Songs',
 		name: '6th Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `6th Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName6)` },
 		steps: [
@@ -322,7 +327,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong7: {
 		category: 'Jump Songs',
 		name: '7th Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `7th Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName7)` },
 		steps: [
@@ -347,7 +352,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	nextSong8: {
 		category: 'Jump Songs',
 		name: '8th Next Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `8th Next Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName8)` },
 		steps: [
@@ -372,7 +377,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong1: {
 		category: 'Jump Songs',
 		name: 'Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName)` },
 		steps: [
@@ -397,7 +402,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong2: {
 		category: 'Jump Songs',
 		name: '2nd Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `2nd Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName2)` },
 		steps: [
@@ -422,7 +427,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong3: {
 		category: 'Jump Songs',
 		name: '3rd Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `3rd Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName3)` },
 		steps: [
@@ -447,7 +452,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong4: {
 		category: 'Jump Songs',
 		name: '4th Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `4th Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName4)` },
 		steps: [
@@ -472,7 +477,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong5: {
 		category: 'Jump Songs',
 		name: '5th Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `5th Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName5)` },
 		steps: [
@@ -497,7 +502,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong6: {
 		category: 'Jump Songs',
 		name: '6th Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `6th Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName6)` },
 		steps: [
@@ -522,7 +527,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong7: {
 		category: 'Jump Songs',
 		name: '7th Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `7th Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName7)` },
 		steps: [
@@ -547,7 +552,7 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	previousSong8: {
 		category: 'Jump Songs',
 		name: '8th Previous Song',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `8th Prev Song` },
 		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName8)` },
 		steps: [
@@ -571,11 +576,11 @@ const nextPrevSongs: CompanionPresetDefinitions = {
 	},
 }
 
-const nextPrevSections: CompanionPresetDefinitions = {
+const nextPrevSections: PresetsWithCategory = {
 	currentSection: {
 		category: 'Jump Sections',
 		name: 'Current Section',
-		type: 'button',
+		type: 'simple',
 		previewStyle: {
 			...defaultSongStyle,
 			bgcolor: COLOR_GREEN_500,
@@ -621,7 +626,7 @@ const nextPrevSections: CompanionPresetDefinitions = {
 				{
 					category: 'Jump Sections',
 					name: `${i + 1} Next Section`,
-					type: 'button',
+					type: 'simple',
 					previewStyle: {
 						...defaultSongStyle,
 						text: (i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `) + 'Next Section',
@@ -675,7 +680,7 @@ const nextPrevSections: CompanionPresetDefinitions = {
 				{
 					category: 'Jump Sections',
 					name: `${i + 1} Previous Section`,
-					type: 'button',
+					type: 'simple',
 					previewStyle: {
 						...defaultSongStyle,
 						text: (i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `) + 'Previous Section',
@@ -723,11 +728,11 @@ const nextPrevSections: CompanionPresetDefinitions = {
 	),
 }
 
-const playbackPresets: CompanionPresetDefinitions = {
+const playbackPresets: PresetsWithCategory = {
 	playPause: {
 		category: 'Playback',
 		name: 'Toggle Play/Pause',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: PLAY_ICON },
 		previewStyle: {
 			...defaultStyle,
@@ -746,7 +751,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	playStop: {
 		category: 'Playback',
 		name: 'Toggle Play/Stop',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: PLAY_ICON },
 		previewStyle: { ...defaultStyle, text: 'Play Stop', png64: PLAY_ICON_GRAY },
 		steps: [{ down: [{ actionId: Action.PlayStop, options: {} }], up: [] }],
@@ -761,7 +766,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	toggleRecord: {
 		category: 'Playback',
 		name: 'Toggle Record',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: RECORD_ICON },
 		previewStyle: { ...defaultStyle, text: 'Record', png64: RECORD_ICON_GRAY },
 		steps: [{ down: [{ actionId: Action.ToggleRecord, options: {} }], up: [] }],
@@ -776,7 +781,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	prevSong: {
 		category: 'Playback',
 		name: 'Previous Song',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: PREV_SONG_ICON_GRAY },
 		previewStyle: {
 			...defaultStyle,
@@ -805,7 +810,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	nextSong: {
 		category: 'Playback',
 		name: 'Next Song',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: NEXT_SONG_ICON_GRAY },
 		previewStyle: {
 			...defaultStyle,
@@ -834,7 +839,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	prevSection: {
 		category: 'Playback',
 		name: 'Previous Section',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, color: COLOR_GRAY, text: '<\nSection' },
 		steps: [
 			{
@@ -858,7 +863,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	nextSection: {
 		category: 'Playback',
 		name: 'Next Section',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, color: COLOR_GRAY, text: '>\nSection' },
 		steps: [
 			{
@@ -882,7 +887,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	prevBar: {
 		category: 'Playback',
 		name: 'Previous Bar',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: PREV_BAR_ICON },
 		previewStyle: {
 			...defaultStyle,
@@ -900,7 +905,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	nextBar: {
 		category: 'Playback',
 		name: 'Next Song',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '', png64: NEXT_BAR_ICON },
 		previewStyle: {
 			...defaultStyle,
@@ -918,7 +923,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	toggleLoop: {
 		category: 'Playback',
 		name: 'Toggle Loop',
-		type: 'button',
+		type: 'simple',
 		style: {
 			...defaultStyle,
 			color: COLOR_GRAY,
@@ -942,7 +947,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	playbackPosition: {
 		category: 'Playback',
 		name: 'Playback Position',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '$(AbleSet:currentMeasureOrPosition)' },
 		steps: [],
 		feedbacks: [],
@@ -950,7 +955,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	playbackPositionBeats: {
 		category: 'Playback',
 		name: 'Current Beat',
-		type: 'button',
+		type: 'simple',
 		style: {
 			...defaultStyle,
 			size: 'auto',
@@ -963,7 +968,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	timeSignature: {
 		category: 'Playback',
 		name: 'Time Signature',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: '$(AbleSet:timeSignature)' },
 		steps: [],
 		feedbacks: [],
@@ -971,7 +976,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	clickSolo: {
 		category: 'Playback',
 		name: 'Solo Click Tracks',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: 'Solo Click' },
 		steps: [
 			{
@@ -995,7 +1000,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	clickMute: {
 		category: 'Playback',
 		name: 'Mute Click Tracks',
-		type: 'button',
+		type: 'simple',
 		style: { ...defaultStyle, text: 'Mute Click' },
 		steps: [
 			{
@@ -1018,13 +1023,13 @@ const playbackPresets: CompanionPresetDefinitions = {
 	},
 }
 
-const beatPresets: CompanionPresetDefinitions = Object.fromEntries(
+const beatPresets: PresetsWithCategory = Object.fromEntries(
 	makeRange(16).map((i) => [
 		`beat${i + 1}`,
 		{
 			category: 'Visual Metronome',
 			name: `Beat ${i + 1}`,
-			type: 'button',
+			type: 'simple',
 			style: {
 				...defaultStyle,
 				size: 'auto',
@@ -1049,13 +1054,13 @@ const beatPresets: CompanionPresetDefinitions = Object.fromEntries(
 	]),
 )
 
-const booleanSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
+const booleanSettingsPresets: PresetsWithCategory = Object.fromEntries(
 	BOOLEAN_SETTINGS.map((s) => [
 		s.id,
 		{
 			category: 'Settings',
 			name: s.label,
-			type: 'button',
+			type: 'simple',
 			style: { ...defaultSongStyle, text: s.label },
 			steps: [
 				{
@@ -1074,13 +1079,13 @@ const booleanSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	]),
 )
 
-const countInDurationSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
+const countInDurationSettingsPresets: PresetsWithCategory = Object.fromEntries(
 	COUNT_IN_DURATIONS.map((s) => [
 		s.id,
 		{
 			category: 'Settings',
 			name: `Count-In Duration / ${s.label}`,
-			type: 'button',
+			type: 'simple',
 			style: { ...defaultSongStyle, text: s.label },
 			previewStyle: { ...defaultSongStyle, text: `Count-In\n${s.label}` },
 			steps: [
@@ -1100,13 +1105,13 @@ const countInDurationSettingsPresets: CompanionPresetDefinitions = Object.fromEn
 	]),
 )
 
-const jumpModeSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
+const jumpModeSettingsPresets: PresetsWithCategory = Object.fromEntries(
 	JUMP_MODES.map((s) => [
 		s.id,
 		{
 			category: 'Settings',
 			name: `Jump Mode / ${s.label}`,
-			type: 'button',
+			type: 'simple',
 			style: { ...defaultSongStyle, text: s.label },
 			previewStyle: { ...defaultSongStyle, text: `Jump:\n${s.label}` },
 			steps: [
@@ -1126,11 +1131,11 @@ const jumpModeSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	]),
 )
 
-const audioInterfacePresets: CompanionPresetDefinitions = {
+const audioInterfacePresets: PresetsWithCategory = {
 	playAudio12: {
 		category: 'Audio Interface',
 		name: 'Audio Interface Scene',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `Audio Interface` },
 		style: { ...defaultSongStyle, color: COLOR_GRAY, text: `Audio Interface` },
 		steps: [{ down: [{ actionId: Action.AudioInterfaceToggleScene, options: {} }], up: [] }],
@@ -1154,11 +1159,11 @@ const audioInterfacePresets: CompanionPresetDefinitions = {
 	},
 }
 
-const ableNetPresets: CompanionPresetDefinitions = {
-	playAudio12: {
+const ableNetPresets: PresetsWithCategory = {
+	syncPlaybackNow: {
 		category: 'AbleNet',
 		name: 'Sync Playback Now',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultSongStyle, text: `Sync Playback Now` },
 		style: { ...defaultSongStyle, text: `Sync Playback Now` },
 		steps: [{ down: [{ actionId: Action.SyncPlaybackNow, options: {} }], up: [] }],
@@ -1172,11 +1177,11 @@ const ableNetPresets: CompanionPresetDefinitions = {
 	},
 }
 
-const timecodePresets: CompanionPresetDefinitions = {
+const timecodePresets: PresetsWithCategory = {
 	timecodeHours: {
 		category: 'LTC Timecode',
 		name: 'Timecode Hours',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '30', text: `HH` },
 		style: {
 			...defaultStyle,
@@ -1196,7 +1201,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 	timecodeMinutes: {
 		category: 'LTC Timecode',
 		name: 'Timecode Minutes',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '30', text: `MM` },
 		style: {
 			...defaultStyle,
@@ -1216,7 +1221,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 	timecodeSeconds: {
 		category: 'LTC Timecode',
 		name: 'Timecode Seconds',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '30', text: `SS` },
 		style: {
 			...defaultStyle,
@@ -1236,7 +1241,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 	timecodeFrames: {
 		category: 'LTC Timecode',
 		name: 'Timecode Frames',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '30', text: `FF` },
 		style: {
 			...defaultStyle,
@@ -1256,7 +1261,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 	timecode: {
 		category: 'LTC Timecode',
 		name: 'Timecode',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '18', text: 'HH:MM:SS:FF' },
 		style: {
 			...defaultStyle,
@@ -1276,7 +1281,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 	timecodeMinutesSeconds: {
 		category: 'LTC Timecode',
 		name: 'Timecode Minutes and Seconds',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '18', text: 'MM:SS' },
 		style: {
 			...defaultStyle,
@@ -1296,7 +1301,7 @@ const timecodePresets: CompanionPresetDefinitions = {
 	timecodeFps: {
 		category: 'LTC Timecode',
 		name: 'Timecode FPS',
-		type: 'button',
+		type: 'simple',
 		previewStyle: { ...defaultStyle, size: '24', text: `30 FPS` },
 		style: {
 			...defaultStyle,
@@ -1319,7 +1324,7 @@ const makeProgressPresets = (
 	buttonCount: number,
 	feedbackId: Feedback.SongProgress | Feedback.SectionProgress,
 	style: 'full' | 'slim',
-): CompanionPresetDefinitions => {
+): PresetsWithCategory => {
 	const category = feedbackId === Feedback.SongProgress ? 'Song Progress' : 'Section Progress'
 
 	return Object.fromEntries(
@@ -1341,7 +1346,7 @@ const makeProgressPresets = (
 				{
 					category,
 					name: `${category} (${buttonText})`,
-					type: 'button',
+					type: 'simple',
 					previewStyle: {
 						...defaultStyle,
 						size: '30',
@@ -1359,7 +1364,7 @@ const makeProgressPresets = (
 						{ feedbackId, options: { buttonCount, buttonNumber, style } },
 					],
 					steps: [],
-				} satisfies CompanionButtonPresetDefinition,
+				} satisfies PresetWithCategory,
 			]
 		}),
 	)
@@ -1382,7 +1387,7 @@ const progressPresets = {
 	...makeProgressPresets(8, Feedback.SectionProgress, 'slim'),
 }
 
-export const presets: CompanionPresetDefinitions = {
+const allPresets: PresetsWithCategory = {
 	...songPresets,
 	...sectionPresets,
 	...nextPrevSongs,
@@ -1397,3 +1402,23 @@ export const presets: CompanionPresetDefinitions = {
 	...countInDurationSettingsPresets,
 	...jumpModeSettingsPresets,
 }
+
+export const presets: CompanionPresetDefinitions = Object.fromEntries(
+	Object.entries(allPresets).map(([id, { category: _category, ...preset }]) => [id, preset]),
+)
+
+export const presetStructure: CompanionPresetSection[] = (() => {
+	const byCategory = new Map<string, string[]>()
+
+	for (const [id, preset] of Object.entries(allPresets)) {
+		const ids = byCategory.get(preset.category) ?? []
+		ids.push(id)
+		byCategory.set(preset.category, ids)
+	}
+
+	return [...byCategory].map(([category, ids]) => ({
+		id: category,
+		name: category,
+		definitions: ids,
+	}))
+})()

@@ -1,4 +1,4 @@
-import { clamp } from 'lodash'
+import { clamp } from 'es-toolkit'
 
 export const PLAY_ICON = '<icon:play.png>'
 export const PLAY_ICON_GRAY = '<icon:play-gray.png>'

@@ -1,5 +1,5 @@
-import { InstanceBase, InstanceStatus, runEntrypoint, type SomeCompanionConfigField } from '@companion-module/base'
-import { debounce, throttle } from 'lodash'
+import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
+import { debounce, throttle } from 'es-toolkit'
 import { type ArgumentType, Client, Server } from 'node-osc'
 import shortUuid from 'short-uuid'
 
@@ -12,7 +12,7 @@ import {
 } from './constants.js'
 import { Action, Feedback } from './enums.js'
 import { getProgressIcon } from './icons.js'
-import { presets } from './presets.js'
+import { presets, presetStructure } from './presets.js'
 import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors.js'
 import { debounceGather } from './utils/debounce.js'
 import { getPort } from './utils/get-port.js'
@@ -21,7 +21,9 @@ import { parseOscCommands } from './utils/string-to-osc.js'
 import { upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12 } from './upgrades.js'
 import { variables } from './variables.js'
 
-export interface Config {
+export const UpgradeScripts = [upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12]
+
+export type Config = {
 	/** The hostname(s) or IP address(es) to connect to, comma-separated */
 	serverHost: string
 	/** Whether to request fine  */
@@ -48,7 +50,7 @@ const getErrorMessage = (e: unknown) => {
 	}
 }
 
-class ModuleInstance extends InstanceBase<Config> {
+export default class ModuleInstance extends InstanceBase {
 	config: Config = { serverHost: '127.0.0.1', fineUpdates: true }
 
 	oscConnections: Array<{
@@ -71,7 +73,7 @@ class ModuleInstance extends InstanceBase<Config> {
 	soloedTrackGroups = new Set<string>()
 	mutedTrackGroups = new Set<string>()
 
-	async init(config: Config) {
+	async init(config: Config): Promise<void> {
 		this.log('info', 'Initializing...')
 		this.config = config
 
@@ -182,7 +184,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		this.updateVariableDefinitions() // export variable definitions
 	}
 
-	handleConnectionChange = () => {
+	handleConnectionChange = (): void => {
 		this.log(
 			'info',
 			'Connection status: ' +
@@ -208,7 +210,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		}
 	}
 
-	sendOsc(message: [string, ...ArgumentType[]]) {
+	sendOsc(message: [string, ...ArgumentType[]]): void {
 		if (this.oscConnections.length) {
 			// Give each message a unique UUID
 			message.push('uuid=' + shortUuid().new())
@@ -222,7 +224,11 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	/** Waits until all new OSC values are received before running updates */
-	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => this.checkFeedbacks(...types), 30)
+	debouncedCheckFeedbacks = debounceGather<Feedback>((types) => {
+		if (types.length) {
+			this.checkFeedbacks(types[0], ...types.slice(1))
+		}
+	}, 30)
 
 	updateSongs = debounce(() => {
 		const currentIndex = this.activeSongIndex
@@ -274,7 +280,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 	}, 20)
 
-	updateMeasureOrPosition = () => {
+	updateMeasureOrPosition = (): void => {
 		this.setVariableValues({
 			currentMeasureOrPosition: this.getVariableValue('currentMeasure') || this.getVariableValue('humanPosition'),
 			currentMeasureOrPositionBeats:
@@ -282,10 +288,10 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 	}
 
-	initOscListeners(server: Server) {
+	initOscListeners(server: Server): void {
 		server.on('message', ([address, ...args], info) => {
 			if (!NOISY_ADDRESSES.has(address)) {
-				this.log('debug', 'OSC from ' + info.address + ': ' + JSON.stringify({ address, args }))
+				this.log('debug', `OSC from ${info.address}: ${JSON.stringify({ address, args })}`)
 			}
 		})
 
@@ -600,7 +606,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		//#endregion
 	}
 
-	isInActiveLoop() {
+	isInActiveLoop(): boolean {
 		const pos = Number(this.getVariableValue('beatsPosition'))
 		return (
 			Boolean(this.getVariableValue('loopEnabled')) &&
@@ -610,13 +616,13 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 
 	// When module gets deleted
-	async destroy() {
+	async destroy(): Promise<void> {
 		this.log('debug', 'destroying module...')
 		await Promise.all(this.oscConnections.map(async (c) => c.close()))
 		this.log('debug', 'module destroyed')
 	}
 
-	async configUpdated(config: Config) {
+	async configUpdated(config: Config): Promise<void> {
 		this.config = config
 		this.log('info', 'got new config: ' + JSON.stringify(config))
 
@@ -648,7 +654,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		]
 	}
 
-	updateActions() {
+	updateActions(): void {
 		this.setActionDefinitions({
 			//#region global
 			[Action.Play]: {
@@ -754,12 +760,11 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'name',
 						type: 'textinput',
 						label: 'Song Name',
-						required: true,
 						useVariables: true,
 					},
 				],
-				callback: async (event, ctx) => {
-					const name = await ctx.parseVariablesInString(String(event.options.name))
+				callback: async (event) => {
+					const name = String(event.options.name)
 					this.sendOsc(['/setlist/jumpToSong', { type: 'string', value: name }])
 				},
 			},
@@ -861,12 +866,11 @@ class ModuleInstance extends InstanceBase<Config> {
 						id: 'name',
 						type: 'textinput',
 						label: 'Section Name',
-						required: true,
 						useVariables: true,
 					},
 				],
-				callback: async (event, ctx) => {
-					const name = await ctx.parseVariablesInString(String(event.options.name))
+				callback: async (event) => {
+					const name = String(event.options.name)
 					this.sendOsc(['/setlist/jumpToSection', { type: 'string', value: name }])
 				},
 			},
@@ -1090,8 +1094,8 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 'toggle',
 					},
 				],
-				callback: async ({ options }, ctx) => {
-					const value = await ctx.parseVariablesInString(String(options.value))
+				callback: async ({ options }) => {
+					const value = String(options.value)
 					this.sendOsc([
 						`/mixer/${String(options.group).toLowerCase()}/${options.type}`,
 						value === 'false' ? 0 : value === 'true' ? 1 : String(value),
@@ -1113,8 +1117,8 @@ class ModuleInstance extends InstanceBase<Config> {
 						regex: '^\\/(.+)',
 					},
 				],
-				callback: async (event, ctx) => {
-					const parsedInput = await ctx.parseVariablesInString(String(event.options.command))
+				callback: async (event) => {
+					const parsedInput = String(event.options.command)
 					const commands = parseOscCommands(parsedInput)
 
 					for (const command of commands) {
@@ -1142,7 +1146,7 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 	}
 
-	updateFeedbacks() {
+	updateFeedbacks(): void {
 		this.setFeedbackDefinitions({
 			[Feedback.IsPlaying]: {
 				type: 'boolean',
@@ -1181,7 +1185,6 @@ class ModuleInstance extends InstanceBase<Config> {
 						max: 16,
 						step: 1,
 						default: 1,
-						required: true,
 					},
 				],
 			},
@@ -1205,7 +1208,6 @@ class ModuleInstance extends InstanceBase<Config> {
 						max: 16,
 						step: 1,
 						default: 1,
-						required: true,
 					},
 				],
 			},
@@ -1718,7 +1720,6 @@ class ModuleInstance extends InstanceBase<Config> {
 						label: 'Value',
 						type: 'textinput',
 						default: 'true',
-						required: true,
 					},
 				],
 			},
@@ -1801,13 +1802,11 @@ class ModuleInstance extends InstanceBase<Config> {
 		})
 	}
 
-	updateVariableDefinitions() {
+	updateVariableDefinitions(): void {
 		this.setVariableDefinitions(variables)
 	}
 
-	updatePresets() {
-		this.setPresetDefinitions(presets)
+	updatePresets(): void {
+		this.setPresetDefinitions(presetStructure, presets)
 	}
 }
-
-runEntrypoint(ModuleInstance, [upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12])
