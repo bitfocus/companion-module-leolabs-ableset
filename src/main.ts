@@ -18,19 +18,10 @@ import { debounceGather } from './utils/debounce.js'
 import { getPort } from './utils/get-port.js'
 import { makeRange } from './utils/range.js'
 import { parseOscCommands } from './utils/string-to-osc.js'
-import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
-import { Action, Feedback } from './enums'
-import { getProgressIcon } from './icons'
-import { presets } from './presets'
-import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors'
-import { debounceGather } from './utils/debounce'
-import { getPort } from './utils/get-port'
-import { makeRange } from './utils/range'
-import { parseOscCommands } from './utils/string-to-osc'
-import { variables } from './variables'
+import { upgradeRemoveAutoLoopCurrentSection } from './upgrades.js'
 import { variables } from './variables.js'
 
-interface Config {
+export interface Config {
 	/** The hostname(s) or IP address(es) to connect to, comma-separated */
 	serverHost: string
 	/** Whether to request fine  */
@@ -1819,4 +1810,4 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 }
 
-runEntrypoint(ModuleInstance, [])
+runEntrypoint(ModuleInstance, [upgradeRemoveAutoLoopCurrentSection])

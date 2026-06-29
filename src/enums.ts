@@ -60,7 +60,6 @@ export enum Action {
 	SetSafeMode = 'setSafeMode',
 	SetAlwaysStopOnSongEnd = 'setAlwaysStopOnSongEnd',
 	SetAutoJumpToNextSong = 'setAutoJumpToNextSong',
-	SetAutoLoopCurrentSection = 'setAutoLoopCurrentSection',
 	SetCountIn = 'setCountIn',
 	SetCountInSoloClick = 'setCountInSoloClick',
 	SetCountInDuration = 'setCountInDuration',
