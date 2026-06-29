@@ -1121,29 +1121,29 @@ const jumpModeSettingsPresets = Object.fromEntries(
 	]),
 )
 
-const playAudio12Presets: CompanionPresetDefinitions = {
+const audioInterfacePresets: CompanionPresetDefinitions = {
 	playAudio12: {
-		category: 'PlayAUDIO12',
-		name: 'PlayAUDIO12 Scene',
+		category: 'Audio Interface',
+		name: 'Audio Interface Scene',
 		type: 'button',
-		previewStyle: { ...defaultSongStyle, text: `PA12` },
-		style: { ...defaultSongStyle, color: COLOR_GRAY, text: `PA12\nN/A` },
+		previewStyle: { ...defaultSongStyle, text: `Audio Interface` },
+		style: { ...defaultSongStyle, color: COLOR_GRAY, text: `Audio Interface` },
 		steps: [{ down: [{ actionId: Action.Pa12ToggleScene, options: {} }], up: [] }],
 		feedbacks: [
 			{
-				feedbackId: Feedback.PlayAudio12IsConnected,
+				feedbackId: Feedback.AudioInterfaceConnected,
 				options: {},
-				style: { color: COLOR_WHITE, text: `PA12\nN/A` },
+				style: { color: COLOR_WHITE, text: `Audio InterfaceA` },
 			},
 			{
-				feedbackId: Feedback.PlayAudio12Scene,
+				feedbackId: Feedback.AudioInterfaceScene,
 				options: { scene: 1 },
-				style: { bgcolor: COLOR_GREEN_800, text: `PA12\nScene A` },
+				style: { bgcolor: COLOR_GREEN_800, text: `Scene A` },
 			},
 			{
-				feedbackId: Feedback.PlayAudio12Scene,
+				feedbackId: Feedback.AudioInterfaceScene,
 				options: { scene: 2 },
-				style: { bgcolor: COLOR_RED_700, text: `PA12\nScene B` },
+				style: { bgcolor: COLOR_RED_700, text: `Scene B` },
 			},
 		],
 	},
@@ -1384,7 +1384,7 @@ export const presets: CompanionPresetDefinitions = {
 	...nextPrevSections,
 	...playbackPresets,
 	...progressPresets,
-	...playAudio12Presets,
+	...audioInterfacePresets,
 	...ableNetPresets,
 	...timecodePresets,
 	...beatPresets,

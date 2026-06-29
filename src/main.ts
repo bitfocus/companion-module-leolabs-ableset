@@ -499,13 +499,13 @@ class ModuleInstance extends InstanceBase<Config> {
 		//#endregion
 
 		//#region PlayAUDIO12
-		server.on('/playaudio12/isConnected', ([, connected]) => {
-			this.setVariableValues({ playAudio12Connected: Boolean(connected) })
-			this.debouncedCheckFeedbacks(Feedback.PlayAudio12IsConnected)
+		server.on('/audioInterfaces/connected', ([, connected]) => {
+			this.setVariableValues({ audioInterfaceConnected: Boolean(connected) })
+			this.debouncedCheckFeedbacks(Feedback.AudioInterfaceConnected)
 		})
-		server.on('/playaudio12/scene', ([, scene]) => {
-			this.setVariableValues({ playAudio12Scene: Number(scene) })
-			this.debouncedCheckFeedbacks(Feedback.PlayAudio12Scene)
+		server.on('/audioInterfaces/all/scene', ([, scene]) => {
+			this.setVariableValues({ audioInterfaceScene: Number(scene) })
+			this.debouncedCheckFeedbacks(Feedback.AudioInterfaceScene)
 		})
 		//#endregion
 
@@ -1716,22 +1716,22 @@ class ModuleInstance extends InstanceBase<Config> {
 				],
 			},
 
-			[Feedback.PlayAudio12IsConnected]: {
+			[Feedback.AudioInterfaceConnected]: {
 				type: 'boolean',
-				name: 'PlayAUDIO12 Connected',
+				name: 'Audio Interface Connected',
 				defaultStyle: { color: COLOR_WHITE },
 				callback: () => {
-					return this.getVariableValue('playAudio12Connected') === true
+					return this.getVariableValue('audioInterfaceConnected') === true
 				},
 				options: [],
 			},
 
-			[Feedback.PlayAudio12Scene]: {
+			[Feedback.AudioInterfaceScene]: {
 				type: 'boolean',
-				name: 'PlayAUDIO12 Scene Equals Value',
+				name: 'Audio Interface Scene Equals Value',
 				defaultStyle: { bgcolor: COLOR_GREEN_800 },
 				callback: ({ options }) => {
-					return this.getVariableValue('playAudio12Scene') === options.scene
+					return this.getVariableValue('audioInterfaceScene') === options.scene
 				},
 				options: [
 					{

@@ -88,8 +88,8 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'loopEnd', name: 'Loop End' },
 	{ variableId: 'isCountingIn', name: 'Is Counting In' },
 
-	{ variableId: 'playAudio12Connected', name: 'PlayAUDIO12 Connected' },
-	{ variableId: 'playAudio12Scene', name: 'PlayAUDIO12 Scene' },
+	{ variableId: 'audioInterfaceConnected', name: 'Audio Interface Connected' },
+	{ variableId: 'audioInterfaceScene', name: 'Audio Interface Scene' },
 
 	{ variableId: 'isSyncingPlayback', name: 'Is Syncing Playback to Other Computer' },
 
