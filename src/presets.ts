@@ -1,4 +1,8 @@
-import type { CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
+import type {
+	CompanionButtonPresetDefinition,
+	CompanionButtonStyleProps,
+	CompanionPresetDefinitions,
+} from '@companion-module/base'
 import {
 	BOOLEAN_SETTINGS,
 	COUNT_IN_DURATIONS,
@@ -43,18 +47,19 @@ import {
 } from './utils/colors.js'
 import { makeRange } from './utils/range.js'
 
-const defaultSongStyle = {
+const defaultSongStyle: Omit<CompanionButtonStyleProps, 'text'> = {
 	bgcolor: COLOR_BLACK,
 	color: COLOR_WHITE,
 	size: '14',
 } as const
-const defaultStyle = {
+
+const defaultStyle: Omit<CompanionButtonStyleProps, 'text'> = {
 	bgcolor: COLOR_BLACK,
 	color: COLOR_WHITE,
 	size: '18',
 } as const
 
-const songPresets = Object.fromEntries(
+const songPresets: CompanionPresetDefinitions = Object.fromEntries(
 	makeRange(SONG_PRESET_COUNT).map((i) => [
 		`song${i + 1}`,
 		{
@@ -85,7 +90,7 @@ const songPresets = Object.fromEntries(
 	]),
 )
 
-const sectionPresets = Object.fromEntries(
+const sectionPresets: CompanionPresetDefinitions = Object.fromEntries(
 	makeRange(SECTION_PRESET_COUNT).map((i) => [
 		`section${i + 1}`,
 		{
@@ -1013,7 +1018,7 @@ const playbackPresets: CompanionPresetDefinitions = {
 	},
 }
 
-const beatPresets = Object.fromEntries(
+const beatPresets: CompanionPresetDefinitions = Object.fromEntries(
 	makeRange(16).map((i) => [
 		`beat${i + 1}`,
 		{
@@ -1044,7 +1049,7 @@ const beatPresets = Object.fromEntries(
 	]),
 )
 
-const booleanSettingsPresets = Object.fromEntries(
+const booleanSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	BOOLEAN_SETTINGS.map((s) => [
 		s.id,
 		{
@@ -1069,7 +1074,7 @@ const booleanSettingsPresets = Object.fromEntries(
 	]),
 )
 
-const countInDurationSettingsPresets = Object.fromEntries(
+const countInDurationSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	COUNT_IN_DURATIONS.map((s) => [
 		s.id,
 		{
@@ -1095,7 +1100,7 @@ const countInDurationSettingsPresets = Object.fromEntries(
 	]),
 )
 
-const jumpModeSettingsPresets = Object.fromEntries(
+const jumpModeSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	JUMP_MODES.map((s) => [
 		s.id,
 		{
