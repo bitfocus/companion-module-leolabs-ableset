@@ -675,6 +675,22 @@ const playbackPresets: CompanionPresetDefinitions = {
 			},
 		],
 	},
+	remainingSongTime: {
+		name: 'Remaining Time in Song',
+		type: 'simple',
+		style: { ...defaultStyle, text: '-$(AbleSet:remainingTimeInSongFormatted)' },
+		previewStyle: { ...defaultSongStyle, text: 'Remaining Song Time' },
+		steps: [],
+		feedbacks: [],
+	},
+	remainingSetTime: {
+		name: 'Remaining Time in Song',
+		type: 'simple',
+		style: { ...defaultStyle, text: '-$(AbleSet:remainingTimeInSetFormatted)' },
+		previewStyle: { ...defaultSongStyle, text: 'Remaining Set Time' },
+		steps: [],
+		feedbacks: [],
+	},
 }
 
 const visualMetronomePresets: CompanionPresetDefinitions = Object.fromEntries(
