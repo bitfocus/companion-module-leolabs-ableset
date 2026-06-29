@@ -629,7 +629,7 @@ const nextPrevSections: PresetsWithCategory = {
 					type: 'simple',
 					previewStyle: {
 						...defaultSongStyle,
-						text: (i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `) + 'Next Section',
+						text: `${i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `}Next Section`,
 					},
 					style: {
 						...defaultSongStyle,
@@ -683,7 +683,7 @@ const nextPrevSections: PresetsWithCategory = {
 					type: 'simple',
 					previewStyle: {
 						...defaultSongStyle,
-						text: (i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `) + 'Previous Section',
+						text: `${i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `}Previous Section`,
 					},
 					style: {
 						...defaultSongStyle,

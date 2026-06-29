@@ -209,9 +209,9 @@ export default class ModuleInstance extends InstanceBase {
 	sendOsc(message: [string, ...ArgumentType[]]): void {
 		if (this.oscConnections.length) {
 			// Give each message a unique UUID
-			message.push('uuid=' + shortUuid().new())
+			message.push(`uuid=${shortUuid().new()}`)
 			for (const client of this.oscConnections) {
-				this.log('info', 'sending message ' + JSON.stringify(message) + ' to client ' + client.host)
+				this.log('info', `sending message ${JSON.stringify(message)} to client ${client.host}`)
 				void client.client.send(structuredClone(message))
 			}
 		} else {
@@ -482,7 +482,7 @@ export default class ModuleInstance extends InstanceBase {
 				const [, , groupName, type] = address.split('/')
 
 				if (!groupName || !type) {
-					this.log('warn', 'Got invalid state event: ' + JSON.stringify({ address, groupName, type }))
+					this.log('warn', `Got invalid state event: ${JSON.stringify({ address, groupName, type })}`)
 					return
 				}
 
@@ -620,7 +620,7 @@ export default class ModuleInstance extends InstanceBase {
 
 	async configUpdated(config: Config): Promise<void> {
 		this.config = config
-		this.log('info', 'got new config: ' + JSON.stringify(config))
+		this.log('info', `got new config: ${JSON.stringify(config)}`)
 
 		await this.destroy()
 		await this.init(config)
