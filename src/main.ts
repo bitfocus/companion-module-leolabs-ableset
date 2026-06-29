@@ -3,6 +3,21 @@ import { debounce, throttle } from 'lodash'
 import { type ArgumentType, Client, Server } from 'node-osc'
 import shortUuid from 'short-uuid'
 
+import {
+	BOOLEAN_SETTINGS,
+	COUNT_IN_DURATIONS,
+	JUMP_MODES,
+	SECTION_PRESET_COUNT,
+	SONG_PRESET_COUNT,
+} from './constants.js'
+import { Action, Feedback } from './enums.js'
+import { getProgressIcon } from './icons.js'
+import { presets } from './presets.js'
+import { COLOR_GREEN_500, COLOR_GREEN_800, COLOR_RED_600, COLOR_WHITE, COLORS } from './utils/colors.js'
+import { debounceGather } from './utils/debounce.js'
+import { getPort } from './utils/get-port.js'
+import { makeRange } from './utils/range.js'
+import { parseOscCommands } from './utils/string-to-osc.js'
 import { BOOLEAN_SETTINGS, COUNT_IN_DURATIONS, JUMP_MODES, SECTION_PRESET_COUNT, SONG_PRESET_COUNT } from './constants'
 import { Action, Feedback } from './enums'
 import { getProgressIcon } from './icons'
@@ -13,6 +28,7 @@ import { getPort } from './utils/get-port'
 import { makeRange } from './utils/range'
 import { parseOscCommands } from './utils/string-to-osc'
 import { variables } from './variables'
+import { variables } from './variables.js'
 
 interface Config {
 	/** The hostname(s) or IP address(es) to connect to, comma-separated */

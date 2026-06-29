@@ -6,8 +6,8 @@ import {
 	RELATIVE_SECTION_PRESETS_COUNT,
 	SECTION_PRESET_COUNT,
 	SONG_PRESET_COUNT,
-} from './constants'
-import { Action, Feedback } from './enums'
+} from './constants.js'
+import { Action, Feedback } from './enums.js'
 import {
 	LOOP_ICON,
 	LOOP_ICON_GRAY,
@@ -29,7 +29,7 @@ import {
 	RECORD_ICON_GRAY,
 	RECORD_ICON_RED,
 	STOP_ICON_GREEN,
-} from './icons'
+} from './icons.js'
 import {
 	COLOR_BLACK,
 	COLOR_DARK_GRAY,
@@ -40,8 +40,8 @@ import {
 	COLOR_RED_600,
 	COLOR_RED_700,
 	COLOR_WHITE,
-} from './utils/colors'
-import { makeRange } from './utils/range'
+} from './utils/colors.js'
+import { makeRange } from './utils/range.js'
 
 const defaultSongStyle = {
 	bgcolor: COLOR_BLACK,
@@ -81,7 +81,7 @@ const songPresets = Object.fromEntries(
 					style: { bgcolor: COLOR_GREEN_500 },
 				},
 			],
-		} as CompanionButtonPresetDefinition,
+		},
 	]),
 )
 
@@ -126,7 +126,7 @@ const sectionPresets = Object.fromEntries(
 				// 	style: { color: COLOR_WHITE },
 				// }
 			],
-		} as CompanionButtonPresetDefinition,
+		},
 	]),
 )
 
@@ -1040,7 +1040,7 @@ const beatPresets = Object.fromEntries(
 					style: { bgcolor: COLOR_GREEN_500 },
 				},
 			],
-		} as CompanionButtonPresetDefinition,
+		},
 	]),
 )
 
@@ -1065,7 +1065,7 @@ const booleanSettingsPresets = Object.fromEntries(
 					style: { bgcolor: COLOR_GREEN_500 },
 				},
 			],
-		} as CompanionButtonPresetDefinition,
+		},
 	]),
 )
 
@@ -1091,7 +1091,7 @@ const countInDurationSettingsPresets = Object.fromEntries(
 					style: { bgcolor: COLOR_GREEN_500 },
 				},
 			],
-		} as CompanionButtonPresetDefinition,
+		},
 	]),
 )
 
@@ -1117,7 +1117,7 @@ const jumpModeSettingsPresets = Object.fromEntries(
 					style: { bgcolor: COLOR_GREEN_500 },
 				},
 			],
-		} as CompanionButtonPresetDefinition,
+		},
 	]),
 )
 

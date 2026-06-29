@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 
-const iconPath = join(__dirname, '..', 'icons')
-const mainPath = join(__dirname, '..', 'dist', 'icons.js')
+const iconPath = join(import.meta.dirname, '..', 'icons')
+const mainPath = join(import.meta.dirname, '..', 'dist', 'icons.js')
 
 let mainCode = readFileSync(mainPath, 'utf-8')
 const singleMatches = mainCode.matchAll(/\<icon:(.+?)\>/g)

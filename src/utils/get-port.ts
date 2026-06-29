@@ -1,4 +1,4 @@
-import { AddressInfo, createServer } from 'node:net'
+import { type AddressInfo, createServer } from 'node:net'
 
 export async function getPort(): Promise<number> {
 	return new Promise((resolve, reject) => {

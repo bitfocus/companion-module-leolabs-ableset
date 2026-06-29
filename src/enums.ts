@@ -1,5 +1,5 @@
 /** Available feedbacks */
-export const enum Feedback {
+export enum Feedback {
 	IsPlaying = 'isPlaying',
 	IsRecording = 'isRecording',
 	IsBeat = 'isBeat',
@@ -31,7 +31,7 @@ export const enum Feedback {
 }
 
 /** Available actions */
-export const enum Action {
+export enum Action {
 	Play = 'play',
 	Pause = 'pause',
 	Stop = 'stop',
