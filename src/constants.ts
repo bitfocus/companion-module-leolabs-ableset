@@ -12,8 +12,6 @@ export const BOOLEAN_SETTINGS = [
 	{ id: 'autoReEnableAutomationOnSongJump', label: 'Re-Enable Automation on Song Jump' },
 	{ id: 'countIn', label: 'Count-In' },
 	{ id: 'countInSoloClick', label: 'Solo Click During Count-In' },
-	{ id: 'countInDuration', label: 'Count-In Duration' },
-	{ id: 'jumpMode', label: 'Jump Mode' },
 	{ id: 'removePlayedSongs', label: 'Remove Played Songs Automatically' },
 	{ id: 'safeMode', label: 'Safe Mode' },
 	{ id: 'showStopButton', label: 'Stop by Default Instead of Pausing' },
