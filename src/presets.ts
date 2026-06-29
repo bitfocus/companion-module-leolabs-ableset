@@ -1133,12 +1133,12 @@ const audioInterfacePresets: CompanionPresetDefinitions = {
 		type: 'button',
 		previewStyle: { ...defaultSongStyle, text: `Audio Interface` },
 		style: { ...defaultSongStyle, color: COLOR_GRAY, text: `Audio Interface` },
-		steps: [{ down: [{ actionId: Action.Pa12ToggleScene, options: {} }], up: [] }],
+		steps: [{ down: [{ actionId: Action.AudioInterfaceToggleScene, options: {} }], up: [] }],
 		feedbacks: [
 			{
 				feedbackId: Feedback.AudioInterfaceConnected,
 				options: {},
-				style: { color: COLOR_WHITE, text: `Audio InterfaceA` },
+				style: { color: COLOR_WHITE, text: `Audio Interface` },
 			},
 			{
 				feedbackId: Feedback.AudioInterfaceScene,

@@ -91,6 +91,9 @@ export const variables: CompanionVariableDefinition[] = [
 	{ variableId: 'audioInterfaceConnected', name: 'Audio Interface Connected' },
 	{ variableId: 'audioInterfaceScene', name: 'Audio Interface Scene' },
 
+	{ variableId: 'playAudio12Connected', name: 'PlayAUDIO12 Connected (deprecated)' },
+	{ variableId: 'playAudio12Scene', name: 'PlayAUDIO12 Scene (deprecated)' },
+
 	{ variableId: 'isSyncingPlayback', name: 'Is Syncing Playback to Other Computer' },
 
 	{ variableId: 'timecode', name: 'Timecode' },

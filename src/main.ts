@@ -18,7 +18,7 @@ import { debounceGather } from './utils/debounce.js'
 import { getPort } from './utils/get-port.js'
 import { makeRange } from './utils/range.js'
 import { parseOscCommands } from './utils/string-to-osc.js'
-import { upgradeRemoveAutoLoopCurrentSection } from './upgrades.js'
+import { upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12 } from './upgrades.js'
 import { variables } from './variables.js'
 
 export interface Config {
@@ -507,11 +507,11 @@ class ModuleInstance extends InstanceBase<Config> {
 
 		//#region PlayAUDIO12
 		server.on('/audioInterfaces/connected', ([, connected]) => {
-			this.setVariableValues({ audioInterfaceConnected: Boolean(connected) })
+			this.setVariableValues({ audioInterfaceConnected: Boolean(connected), playAudio12Connected: Boolean(connected) })
 			this.debouncedCheckFeedbacks(Feedback.AudioInterfaceConnected)
 		})
 		server.on('/audioInterfaces/all/scene', ([, scene]) => {
-			this.setVariableValues({ audioInterfaceScene: Number(scene) })
+			this.setVariableValues({ audioInterfaceScene: Number(scene), playAudio12Scene: Number(scene) })
 			this.debouncedCheckFeedbacks(Feedback.AudioInterfaceScene)
 		})
 		//#endregion
@@ -908,9 +908,9 @@ class ModuleInstance extends InstanceBase<Config> {
 			},
 			//#endregion
 
-			//#region PlayAUDIO12
-			[Action.Pa12SetScene]: {
-				name: 'PlayAUDIO12: Set Scene',
+			//#region Audio Interfaces
+			[Action.AudioInterfaceSetScene]: {
+				name: 'Audio Interface: Set Scene',
 				options: [
 					{
 						id: 'scene',
@@ -923,12 +923,12 @@ class ModuleInstance extends InstanceBase<Config> {
 						default: 'A',
 					},
 				],
-				callback: async (event) => this.sendOsc(['/playaudio12/setScene', String(event.options.scene)]),
+				callback: async (event) => this.sendOsc(['/audioInterfaces/setScene', String(event.options.scene)]),
 			},
-			[Action.Pa12ToggleScene]: {
-				name: 'PlayAUDIO12: Toggle Scene',
+			[Action.AudioInterfaceToggleScene]: {
+				name: 'Audio Interface: Toggle Scene',
 				options: [],
-				callback: async () => this.sendOsc(['/playaudio12/toggleScene']),
+				callback: async () => this.sendOsc(['/audioInterfaces/toggleScene']),
 			},
 			//#endregion
 
@@ -1810,4 +1810,4 @@ class ModuleInstance extends InstanceBase<Config> {
 	}
 }
 
-runEntrypoint(ModuleInstance, [upgradeRemoveAutoLoopCurrentSection])
+runEntrypoint(ModuleInstance, [upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12])
