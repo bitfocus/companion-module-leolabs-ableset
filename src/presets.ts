@@ -9,6 +9,7 @@ import {
 	COUNT_IN_DURATIONS,
 	JUMP_MODES,
 	RELATIVE_SECTION_PRESETS_COUNT,
+	RELATIVE_SONG_PRESETS_COUNT,
 	SECTION_PRESET_COUNT,
 	SONG_PRESET_COUNT,
 } from './constants.js'
@@ -63,6 +64,19 @@ const defaultStyle: Omit<CompanionButtonStyleProps, 'text'> = {
 /** A preset definition with a transient `category` used to build the preset structure */
 type PresetWithCategory = CompanionPresetDefinition & { category: string }
 type PresetsWithCategory = Record<string, PresetWithCategory>
+
+/** Generates a name for relative song/section presets */
+const makeOrdinal = (i: number, suffix: string) => {
+	if (i === 0) {
+		return suffix
+	} else if (i === 1) {
+		return `2nd ${suffix}`
+	} else if (i === 2) {
+		return `3rd ${suffix}`
+	} else {
+		return `${i + 1}th ${suffix}`
+	}
+}
 
 const songPresets: PresetsWithCategory = Object.fromEntries(
 	makeRange(SONG_PRESET_COUNT).map((i) => [
@@ -174,406 +188,78 @@ const nextPrevSongs: PresetsWithCategory = {
 			},
 		],
 	},
-	nextSong1: {
-		category: 'Jump Songs',
-		name: 'Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName)` },
-		steps: [
+	...Object.fromEntries(
+		makeRange(RELATIVE_SONG_PRESETS_COUNT).map((_, i) => [
+			`nextSong${i + 1}`,
 			{
-				down: [
+				category: 'Jump Songs',
+				name: makeOrdinal(i, `Next Song`),
+				type: 'simple',
+				previewStyle: {
+					...defaultSongStyle,
+					text: makeOrdinal(i, `Next Song`),
+				},
+				style: {
+					...defaultSongStyle,
+					text: `$(AbleSet:nextSongName${i === 0 ? '' : i + 1})`,
+				},
+				steps: [
 					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 1, force: 'true' },
+						down: [
+							{
+								actionId: Action.JumpBySongs,
+								options: { steps: i + 1, force: 'true' },
+							},
+						],
+						up: [],
 					},
 				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 1 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong2: {
-		category: 'Jump Songs',
-		name: '2nd Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `2nd Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName2)` },
-		steps: [
-			{
-				down: [
+				feedbacks: [
 					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 2, force: 'true' },
+						feedbackId: Feedback.IsQueuedNextSong,
+						options: { songDelta: i + 1 },
+						style: { bgcolor: COLOR_GREEN_800 },
 					},
 				],
-				up: [],
 			},
-		],
-		feedbacks: [
+		]),
+	),
+	...Object.fromEntries(
+		makeRange(RELATIVE_SONG_PRESETS_COUNT).map((_, i) => [
+			`previousSong${i + 1}`,
 			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 2 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong3: {
-		category: 'Jump Songs',
-		name: '3rd Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `3rd Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName3)` },
-		steps: [
-			{
-				down: [
+				category: 'Jump Songs',
+				name: makeOrdinal(i, `Previous Song`),
+				type: 'simple',
+				previewStyle: {
+					...defaultSongStyle,
+					text: makeOrdinal(i, `Prev Song`),
+				},
+				style: {
+					...defaultSongStyle,
+					text: `$(AbleSet:previousSongName${i === 0 ? '' : i + 1})`,
+				},
+				steps: [
 					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 3, force: 'true' },
+						down: [
+							{
+								actionId: Action.JumpBySongs,
+								options: { steps: -(i + 1), force: 'true' },
+							},
+						],
+						up: [],
 					},
 				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 3 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong4: {
-		category: 'Jump Songs',
-		name: '4th Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `4th Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName4)` },
-		steps: [
-			{
-				down: [
+				feedbacks: [
 					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 4, force: 'true' },
+						feedbackId: Feedback.IsQueuedNextSong,
+						options: { songDelta: -(i + 1) },
+						style: { bgcolor: COLOR_GREEN_800 },
 					},
 				],
-				up: [],
 			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 4 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong5: {
-		category: 'Jump Songs',
-		name: '5th Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `5th Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName5)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 5, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 5 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong6: {
-		category: 'Jump Songs',
-		name: '6th Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `6th Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName6)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 6, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 6 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong7: {
-		category: 'Jump Songs',
-		name: '7th Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `7th Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName7)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 7, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 7 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	nextSong8: {
-		category: 'Jump Songs',
-		name: '8th Next Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `8th Next Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:nextSongName8)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: 8, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: 8 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong1: {
-		category: 'Jump Songs',
-		name: 'Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -1, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -1 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong2: {
-		category: 'Jump Songs',
-		name: '2nd Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `2nd Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName2)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -2, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -2 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong3: {
-		category: 'Jump Songs',
-		name: '3rd Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `3rd Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName3)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -3, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -3 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong4: {
-		category: 'Jump Songs',
-		name: '4th Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `4th Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName4)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -4, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -4 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong5: {
-		category: 'Jump Songs',
-		name: '5th Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `5th Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName5)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -5, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -5 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong6: {
-		category: 'Jump Songs',
-		name: '6th Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `6th Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName6)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -6, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -6 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong7: {
-		category: 'Jump Songs',
-		name: '7th Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `7th Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName7)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -7, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -7 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
-	previousSong8: {
-		category: 'Jump Songs',
-		name: '8th Previous Song',
-		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `8th Prev Song` },
-		style: { ...defaultSongStyle, text: `$(AbleSet:previousSongName8)` },
-		steps: [
-			{
-				down: [
-					{
-						actionId: Action.JumpBySongs,
-						options: { steps: -8, force: 'true' },
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: Feedback.IsQueuedNextSong,
-				options: { songDelta: -8 },
-				style: { bgcolor: COLOR_GREEN_800 },
-			},
-		],
-	},
+		]),
+	),
 }
 
 const nextPrevSections: PresetsWithCategory = {
@@ -619,112 +305,108 @@ const nextPrevSections: PresetsWithCategory = {
 		],
 	},
 	...Object.fromEntries(
-		Array(RELATIVE_SECTION_PRESETS_COUNT)
-			.fill(0)
-			.map((_, i) => [
-				`nextSection${i + 1}`,
-				{
-					category: 'Jump Sections',
-					name: `${i + 1} Next Section`,
-					type: 'simple',
-					previewStyle: {
-						...defaultSongStyle,
-						text: `${i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `}Next Section`,
-					},
-					style: {
-						...defaultSongStyle,
-						text: `$(AbleSet:nextSectionName${i === 0 ? '' : i + 1})`,
-					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: Action.JumpBySections,
-									options: { steps: i + 1, force: 'true' },
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: Feedback.SectionColor,
-							options: {
-								relative: true,
-								sectionNumber: i + 1,
-								colorProps: ['bgcolor'],
-							},
-						},
-						{
-							feedbackId: Feedback.SectionProgressByNumber,
-							options: {
-								relative: true,
-								sectionNumber: i + 1,
-								style: 'fullTransparent',
-							},
-						},
-						{
-							feedbackId: Feedback.IsQueuedNextSection,
-							options: { sectionDelta: i + 1 },
-							style: { png64: QUEUED_ICON, color: COLOR_WHITE },
-						},
-					],
+		makeRange(RELATIVE_SECTION_PRESETS_COUNT).map((_, i) => [
+			`nextSection${i + 1}`,
+			{
+				category: 'Jump Sections',
+				name: makeOrdinal(i, `Next Section`),
+				type: 'simple',
+				previewStyle: {
+					...defaultSongStyle,
+					text: makeOrdinal(i, `Next Section`),
 				},
-			]),
+				style: {
+					...defaultSongStyle,
+					text: `$(AbleSet:nextSectionName${i === 0 ? '' : i + 1})`,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: Action.JumpBySections,
+								options: { steps: i + 1, force: 'true' },
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: Feedback.SectionColor,
+						options: {
+							relative: true,
+							sectionNumber: i + 1,
+							colorProps: ['bgcolor'],
+						},
+					},
+					{
+						feedbackId: Feedback.SectionProgressByNumber,
+						options: {
+							relative: true,
+							sectionNumber: i + 1,
+							style: 'fullTransparent',
+						},
+					},
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: i + 1 },
+						style: { png64: QUEUED_ICON, color: COLOR_WHITE },
+					},
+				],
+			},
+		]),
 	),
 	...Object.fromEntries(
-		Array(RELATIVE_SECTION_PRESETS_COUNT)
-			.fill(0)
-			.map((_, i) => [
-				`previousSection${i + 1}`,
-				{
-					category: 'Jump Sections',
-					name: `${i + 1} Previous Section`,
-					type: 'simple',
-					previewStyle: {
-						...defaultSongStyle,
-						text: `${i === 0 ? '' : i === 1 ? '2nd ' : i === 2 ? '3rd ' : `${i + 1}th `}Previous Section`,
-					},
-					style: {
-						...defaultSongStyle,
-						text: `$(AbleSet:previousSectionName${i === 0 ? '' : i + 1})`,
-					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: Action.JumpBySections,
-									options: { steps: -(i + 1), force: 'true' },
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: Feedback.SectionColor,
-							options: {
-								relative: true,
-								sectionNumber: -(i + 1),
-								colorProps: ['bgcolor'],
-							},
-						},
-						{
-							feedbackId: Feedback.SectionProgressByNumber,
-							options: {
-								relative: true,
-								sectionNumber: -(i + 1),
-								style: 'fullTransparent',
-							},
-						},
-						{
-							feedbackId: Feedback.IsQueuedNextSection,
-							options: { sectionDelta: -(i + 1) },
-							style: { png64: QUEUED_ICON, color: COLOR_WHITE },
-						},
-					],
+		makeRange(RELATIVE_SECTION_PRESETS_COUNT).map((_, i) => [
+			`previousSection${i + 1}`,
+			{
+				category: 'Jump Sections',
+				name: makeOrdinal(i, `Previous Section`),
+				type: 'simple',
+				previewStyle: {
+					...defaultSongStyle,
+					text: makeOrdinal(i, `Prev Section`),
 				},
-			]),
+				style: {
+					...defaultSongStyle,
+					text: `$(AbleSet:previousSectionName${i === 0 ? '' : i + 1})`,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: Action.JumpBySections,
+								options: { steps: -(i + 1), force: 'true' },
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: Feedback.SectionColor,
+						options: {
+							relative: true,
+							sectionNumber: -(i + 1),
+							colorProps: ['bgcolor'],
+						},
+					},
+					{
+						feedbackId: Feedback.SectionProgressByNumber,
+						options: {
+							relative: true,
+							sectionNumber: -(i + 1),
+							style: 'fullTransparent',
+						},
+					},
+					{
+						feedbackId: Feedback.IsQueuedNextSection,
+						options: { sectionDelta: -(i + 1) },
+						style: { png64: QUEUED_ICON, color: COLOR_WHITE },
+					},
+				],
+			},
+		]),
 	),
 }
 

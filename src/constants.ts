@@ -1,6 +1,7 @@
 export const SONG_PRESET_COUNT = 128
 export const SECTION_PRESET_COUNT = 48
 export const RELATIVE_SECTION_PRESETS_COUNT = 8
+export const RELATIVE_SONG_PRESETS_COUNT = 8
 
 export const BOOLEAN_SETTINGS = [
 	{ id: 'ableNet', label: 'AbleNet' },
