@@ -797,19 +797,18 @@ const jumpModeSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	]),
 )
 
-const audioInterfacePresets: PresetsWithCategory = {
-	playAudio12: {
-		category: 'Audio Interface',
+const audioInterfacePresets: CompanionPresetDefinitions = {
+	audioInterfaceScene: {
 		name: 'Audio Interface Scene',
 		type: 'simple',
-		previewStyle: { ...defaultSongStyle, text: `Audio Interface` },
-		style: { ...defaultSongStyle, color: COLOR_GRAY, text: `Audio Interface` },
+		previewStyle: { ...defaultSongStyle, text: `Current Scene` },
+		style: { ...defaultSongStyle, color: COLOR_GRAY, text: `Not Connected` },
 		steps: [{ down: [{ actionId: Action.AudioInterfaceToggleScene, options: {} }], up: [] }],
 		feedbacks: [
 			{
 				feedbackId: Feedback.AudioInterfaceConnected,
 				options: {},
-				style: { color: COLOR_WHITE, text: `Audio Interface` },
+				style: { color: COLOR_WHITE, text: `Connected` },
 			},
 			{
 				feedbackId: Feedback.AudioInterfaceScene,
