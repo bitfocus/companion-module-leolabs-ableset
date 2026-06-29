@@ -1,8 +1,10 @@
 {
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
+	"type": "connection",
 	"id": "leolabs-ableset",
 	"name": "leolabs-ableset",
 	"shortname": "AbleSet",
-	"description": "Control AbleSet and View the Current State of Your Setlist",
+	"description": "Control AbleSet and view the current state of your setlist",
 	"version": "1.8.1",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-leolabs-ableset.git",
@@ -10,7 +12,7 @@
 	"maintainers": [
 		{
 			"name": "Léo Bernard",
-			"email": "leo@ableset.app"
+			"email": "leo@ableset.com"
 		}
 	],
 	"runtime": {
