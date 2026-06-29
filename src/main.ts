@@ -21,6 +21,7 @@ import { getPort } from './utils/get-port.js'
 import { makeRange } from './utils/range.js'
 import { parseOscCommands } from './utils/string-to-osc.js'
 import { variables } from './variables.js'
+import { formatDuration } from './utils/format-duration.js'
 
 export const UpgradeScripts = [upgradeRemoveAutoLoopCurrentSection, upgradeRenamePlayAudio12]
 
@@ -472,10 +473,16 @@ export default class ModuleInstance extends InstanceBase {
 			this.setVariableValues({ isCountingIn: Boolean(isCountingIn) })
 		})
 		server.on('/setlist/remainingTimeInSong', ([, remainingTime]) => {
-			this.setVariableValues({ remainingTimeInSong: Number(remainingTime) })
+			this.setVariableValues({
+				remainingTimeInSong: Number(remainingTime),
+				remainingTimeInSongFormatted: formatDuration(Number(remainingTime)),
+			})
 		})
 		server.on('/setlist/remainingTimeInSet', ([, remainingTime]) => {
-			this.setVariableValues({ remainingTimeInSet: Number(remainingTime) })
+			this.setVariableValues({
+				remainingTimeInSet: Number(remainingTime),
+				remainingTimeInSetFormatted: formatDuration(Number(remainingTime)),
+			})
 		})
 		server.on('message', ([address, state]) => {
 			if (address.startsWith('/mixer/') && address !== '/mixer/names' && address !== '/mixer/colors') {

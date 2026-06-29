@@ -104,6 +104,9 @@ export const variables: CompanionVariableDefinitions = {
 	remainingTimeInSong: { name: 'Remaining Time in Song' },
 	remainingTimeInSet: { name: 'Remaining Time in Set' },
 
+	remainingTimeInSongFormatted: { name: 'Remaining Time in Song, Formatted in HH:mm:ss' },
+	remainingTimeInSetFormatted: { name: 'Remaining Time in Set, Formatted in HH:mm:ss' },
+
 	ableNet: { name: 'AbleNet Enabled' },
 	ableNetDriftCorrection: { name: 'AbleNet Drift Correction' },
 	autoplay: { name: 'Autoplay' },
