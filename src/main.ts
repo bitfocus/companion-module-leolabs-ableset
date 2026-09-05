@@ -52,17 +52,21 @@ const getErrorMessage = (e: unknown) => {
 	}
 }
 
+interface OscConnection {
+	host: string
+	port: number
+	isConnected: boolean
+	/** The AbleSet app version reported by `/version/app`, or null if not (yet) known (e.g. AbleSet 2, which doesn't report it) */
+	appVersion: string | null
+	client: Client
+	server: Server
+	close: () => Promise<void>
+}
+
 export default class ModuleInstance extends InstanceBase {
 	config: Config = { serverHost: '127.0.0.1', fineUpdates: true }
 
-	oscConnections: Array<{
-		host: string
-		port: number
-		isConnected: boolean
-		client: Client
-		server: Server
-		close: () => Promise<void>
-	}> = []
+	oscConnections: OscConnection[] = []
 
 	songs: string[] = []
 	sections: string[] = []
@@ -105,6 +109,7 @@ export default class ModuleInstance extends InstanceBase {
 					host: host.trim(),
 					port,
 					isConnected: false,
+					appVersion: null,
 					client,
 					server,
 					close: async () => {},
@@ -128,6 +133,11 @@ export default class ModuleInstance extends InstanceBase {
 
 				this.initOscListeners(client.server)
 
+				client.server.on('/version/app', ([, version]) => {
+					client.appVersion = String(version)
+					this.log('info', `AbleSet version for ${client.host}: ${client.appVersion}`)
+				})
+
 				const handleHeartbeat = debounce(() => {
 					this.log('warn', `Took too long between heartbeats from ${client.host}, connection likely lost`)
 					client.isConnected = false
@@ -148,6 +158,8 @@ export default class ModuleInstance extends InstanceBase {
 					this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
 					this.trySend(client.client, ['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
 					this.trySend(client.client, ['/getValues'])
+					// AbleSet 2 doesn't support arguments for /getValues and will just send everything instead, which is harmless here
+					this.trySend(client.client, ['/getValues', '/version/app'])
 				}
 
 				tryConnecting()
@@ -213,17 +225,27 @@ export default class ModuleInstance extends InstanceBase {
 		}
 	}
 
-	sendOsc(message: [string, ...ArgumentType[]]): void {
+	sendOsc(message: [string, ...ArgumentType[]] | ((connection: OscConnection) => [string, ...ArgumentType[]])): void {
 		if (this.oscConnections.length) {
 			// Give each message a unique UUID
-			message.push(`uuid=${shortUuid().new()}`)
+			const uuid = shortUuid().new()
+
 			for (const client of this.oscConnections) {
-				this.log('info', `sending message ${JSON.stringify(message)} to client ${client.host}`)
-				this.trySend(client.client, structuredClone(message))
+				const resolved = typeof message === 'function' ? message(client) : message
+				const clientMessage = [...resolved, `uuid=${uuid}`]
+				this.log('info', `sending message ${JSON.stringify(clientMessage)} to client ${client.host}`)
+				this.trySend(client.client, clientMessage)
 			}
 		} else {
 			this.log('error', "OSC client doesn't exist")
 		}
+	}
+
+	/** AbleSet 2 doesn't report `/version/app`, so an unknown version is assumed to be AbleSet 2 or older */
+	private isAbleSet3OrLater(connection: OscConnection): boolean {
+		if (!connection.appVersion) return false
+		const majorVersion = Number.parseInt(connection.appVersion, 10)
+		return Number.isNaN(majorVersion) || majorVersion >= 3
 	}
 
 	/** Waits until all new OSC values are received before running updates */
@@ -521,14 +543,21 @@ export default class ModuleInstance extends InstanceBase {
 		//#endregion
 
 		//#region PlayAUDIO12
-		server.on('/audioInterfaces/connected', ([, connected]) => {
+		const handleAudioInterfaceConnected = ([, connected]: ArgumentType[]) => {
 			this.setVariableValues({ audioInterfaceConnected: Boolean(connected), playAudio12Connected: Boolean(connected) })
 			this.debouncedCheckFeedbacks(Feedback.AudioInterfaceConnected)
-		})
-		server.on('/audioInterfaces/all/scene', ([, scene]) => {
+		}
+		const handleAudioInterfaceScene = ([, scene]: ArgumentType[]) => {
 			this.setVariableValues({ audioInterfaceScene: Number(scene), playAudio12Scene: Number(scene) })
 			this.debouncedCheckFeedbacks(Feedback.AudioInterfaceScene)
-		})
+		}
+
+		// AbleSet 3 addresses
+		server.on('/audioInterfaces/connected', handleAudioInterfaceConnected)
+		server.on('/audioInterfaces/all/scene', handleAudioInterfaceScene)
+		// AbleSet 2 addresses, kept so this still works against AbleSet 2
+		server.on('/playaudio12/isConnected', handleAudioInterfaceConnected)
+		server.on('/playaudio12/scene', handleAudioInterfaceScene)
 		//#endregion
 
 		//#region Timecode
@@ -936,12 +965,23 @@ export default class ModuleInstance extends InstanceBase {
 						default: 'A',
 					},
 				],
-				callback: async (event) => this.sendOsc(['/audioInterfaces/setScene', String(event.options.scene)]),
+				callback: async (event) => {
+					const scene = String(event.options.scene)
+					this.sendOsc((connection) =>
+						this.isAbleSet3OrLater(connection)
+							? ['/audioInterfaces/setScene', scene]
+							: ['/playaudio12/setScene', scene],
+					)
+				},
 			},
 			[Action.AudioInterfaceToggleScene]: {
 				name: 'Audio Interface: Toggle Scene',
 				options: [],
-				callback: async () => this.sendOsc(['/audioInterfaces/toggleScene']),
+				callback: async () => {
+					this.sendOsc((connection) =>
+						this.isAbleSet3OrLater(connection) ? ['/audioInterfaces/toggleScene'] : ['/playaudio12/toggleScene'],
+					)
+				},
 			},
 			//#endregion
 
