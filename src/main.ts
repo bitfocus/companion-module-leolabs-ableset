@@ -98,11 +98,14 @@ export default class ModuleInstance extends InstanceBase {
 					})
 				})
 
+				const client = new Client(host.trim(), 39051)
+				client.on('error', (e) => this.log('error', `OSC client for ${host.trim()} errored: ${getErrorMessage(e)}`))
+
 				this.oscConnections.push({
 					host: host.trim(),
 					port,
 					isConnected: false,
-					client: new Client(host.trim(), 39051),
+					client,
 					server,
 					close: async () => {},
 				})
