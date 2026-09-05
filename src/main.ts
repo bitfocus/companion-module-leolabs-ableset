@@ -187,8 +187,8 @@ export default class ModuleInstance extends InstanceBase {
 		}
 
 		this.updateActions() // export actions
-		this.updatePresets() // export presets
 		this.updateFeedbacks() // export feedbacks
+		this.updatePresets() // export presets
 		this.updateVariableDefinitions() // export variable definitions
 	}
 
