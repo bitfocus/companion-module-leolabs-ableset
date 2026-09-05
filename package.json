@@ -29,7 +29,7 @@
 		"short-uuid": "^5.2.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^3.0.1",
+		"@companion-module/tools": "^3.1.0",
 		"@types/node": "^22.19.3",
 		"canvas": "^3.1.2",
 		"eslint": "^9.36.0",
