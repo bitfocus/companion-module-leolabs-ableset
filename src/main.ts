@@ -142,13 +142,9 @@ export default class ModuleInstance extends InstanceBase {
 				})
 
 				const tryConnecting = () => {
-					try {
-						this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
-						void client.client.send(['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
-						void client.client.send(['/getValues'])
-					} catch (e) {
-						this.log('error', `Couldn't send subscribe command to ${client.host}: ${getErrorMessage(e)}`)
-					}
+					this.log('info', `Trying to connect to AbleSet on ${client.host}...`)
+					this.trySend(client.client, ['/subscribe', 'auto', client.port, 'Companion', config.fineUpdates ?? false])
+					this.trySend(client.client, ['/getValues'])
 				}
 
 				tryConnecting()
@@ -164,7 +160,7 @@ export default class ModuleInstance extends InstanceBase {
 
 					handleHeartbeat.cancel()
 					clearInterval(connectInterval)
-					void client.client.send(['/unsubscribe'])
+					this.trySend(client.client, ['/unsubscribe'])
 
 					await client.server.close()
 					await client.client.close()
@@ -179,6 +175,13 @@ export default class ModuleInstance extends InstanceBase {
 		this.updatePresets() // export presets
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
+	}
+
+	private trySend(client: Client, message: unknown[]): void {
+		client.send(message)?.catch((e: unknown) => {
+			this.log('error', `OSC send to ${client.host} failed: ${getErrorMessage(e)}`)
+			this.updateStatus(InstanceStatus.ConnectionFailure, getErrorMessage(e))
+		})
 	}
 
 	handleConnectionChange = (): void => {
@@ -213,7 +216,7 @@ export default class ModuleInstance extends InstanceBase {
 			message.push(`uuid=${shortUuid().new()}`)
 			for (const client of this.oscConnections) {
 				this.log('info', `sending message ${JSON.stringify(message)} to client ${client.host}`)
-				void client.client.send(structuredClone(message))
+				this.trySend(client.client, structuredClone(message))
 			}
 		} else {
 			this.log('error', "OSC client doesn't exist")
