@@ -93,6 +93,9 @@ export const variables: CompanionVariableDefinitions = {
 
 	isSyncingPlayback: { name: 'Is Syncing Playback to Other Computer' },
 
+	canReEnableAutomation: { name: 'Can Re-Enable Automation' },
+	canGoBackToArrangement: { name: 'Can Go Back to Arrangement' },
+
 	timecode: { name: 'Timecode' },
 	timecodeHours: { name: 'Timecode Hours' },
 	timecodeMinutes: { name: 'Timecode Minutes' },

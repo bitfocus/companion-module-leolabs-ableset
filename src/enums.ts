@@ -28,6 +28,8 @@ export enum Feedback {
 	IsSyncingPlayback = 'isSyncingPlayback',
 	IsTrackGroupMuted = 'isTrackGroupMuted',
 	IsTrackGroupSoloed = 'isTrackGroupSoloed',
+	CanReEnableAutomation = 'canReEnableAutomation',
+	CanGoBackToArrangement = 'canGoBackToArrangement',
 }
 
 /** Available actions */
@@ -40,6 +42,8 @@ export enum Action {
 	Record = 'record',
 	StopRecord = 'stopRecord',
 	ToggleRecord = 'toggleRecord',
+	ReEnableAutomation = 'reEnableAutomation',
+	BackToArrangement = 'backToArrangement',
 	EnableLoop = 'enableLoop',
 	EscapeLoop = 'escapeLoop',
 	ToggleLoop = 'toggleLoop',
@@ -52,6 +56,7 @@ export enum Action {
 	JumpToSectionByName = 'jumpToSectionByName',
 	JumpBySections = 'jumpBySections',
 	PlayCuedSong = 'playCuedSong',
+	Go = 'go',
 	AudioInterfaceSetScene = 'audioInterfaceSetScene',
 	AudioInterfaceToggleScene = 'audioInterfaceToggleScene',
 	SyncPlaybackNow = 'syncPlaybackNow',

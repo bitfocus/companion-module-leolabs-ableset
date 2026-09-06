@@ -444,6 +444,46 @@ const playbackPresets: CompanionPresetDefinitions = {
 			},
 		],
 	},
+	go: {
+		name: 'Go (Context-Aware Play/Jump)',
+		type: 'simple',
+		style: { ...defaultStyle, text: 'GO' },
+		previewStyle: { ...defaultStyle, text: 'GO' },
+		steps: [{ down: [{ actionId: Action.Go, options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: Feedback.IsPlaying,
+				options: {},
+				style: { bgcolor: COLOR_GREEN_700 },
+			},
+		],
+	},
+	reEnableAutomation: {
+		name: 'Re-Enable Automation',
+		type: 'simple',
+		style: { ...defaultSongStyle, color: COLOR_GRAY, text: 'Re-Enable\nAutomation' },
+		steps: [{ down: [{ actionId: Action.ReEnableAutomation, options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: Feedback.CanReEnableAutomation,
+				options: {},
+				style: { color: COLOR_WHITE },
+			},
+		],
+	},
+	backToArrangement: {
+		name: 'Back to Arrangement',
+		type: 'simple',
+		style: { ...defaultSongStyle, color: COLOR_GRAY, text: 'Back to\nArrangement' },
+		steps: [{ down: [{ actionId: Action.BackToArrangement, options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: Feedback.CanGoBackToArrangement,
+				options: {},
+				style: { color: COLOR_WHITE },
+			},
+		],
+	},
 	prevSong: {
 		name: 'Previous Song',
 		type: 'simple',

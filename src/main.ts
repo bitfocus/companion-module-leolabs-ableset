@@ -387,6 +387,14 @@ export default class ModuleInstance extends InstanceBase {
 			this.setVariableValues({ isSyncingPlayback: Boolean(isSyncingPlayback) })
 			this.debouncedCheckFeedbacks(Feedback.IsSyncingPlayback)
 		})
+		server.on('/global/canReEnableAutomation', ([, canReEnableAutomation]) => {
+			this.setVariableValues({ canReEnableAutomation: Boolean(canReEnableAutomation) })
+			this.debouncedCheckFeedbacks(Feedback.CanReEnableAutomation)
+		})
+		server.on('/global/canGoBackToArrangement', ([, canGoBackToArrangement]) => {
+			this.setVariableValues({ canGoBackToArrangement: Boolean(canGoBackToArrangement) })
+			this.debouncedCheckFeedbacks(Feedback.CanGoBackToArrangement)
+		})
 		//#endregion
 
 		//#region setlist
@@ -753,9 +761,24 @@ export default class ModuleInstance extends InstanceBase {
 					this.sendOsc(['/global/toggleRecording'])
 				},
 			},
+			[Action.ReEnableAutomation]: {
+				name: 'Re-Enable Automation',
+				options: [],
+				callback: async () => this.sendOsc(['/global/reEnableAutomation']),
+			},
+			[Action.BackToArrangement]: {
+				name: 'Back to Arrangement',
+				options: [],
+				callback: async () => this.sendOsc(['/global/backToArrangement']),
+			},
 			//#endregion
 
 			//#region setlist
+			[Action.Go]: {
+				name: 'Go (Context-Aware Play/Jump)',
+				options: [],
+				callback: async () => this.sendOsc(['/setlist/go']),
+			},
 			[Action.EnableLoop]: {
 				name: 'Enable Loop',
 				options: [],
@@ -1812,6 +1835,26 @@ export default class ModuleInstance extends InstanceBase {
 				callback: () => {
 					const stale = this.getVariableValue('timecodeStale')
 					return typeof stale !== 'undefined' && !stale
+				},
+			},
+
+			[Feedback.CanReEnableAutomation]: {
+				type: 'boolean',
+				name: 'Can Re-Enable Automation',
+				defaultStyle: { color: COLOR_WHITE },
+				options: [],
+				callback: () => {
+					return Boolean(this.getVariableValue('canReEnableAutomation'))
+				},
+			},
+
+			[Feedback.CanGoBackToArrangement]: {
+				type: 'boolean',
+				name: 'Can Go Back to Arrangement',
+				defaultStyle: { color: COLOR_WHITE },
+				options: [],
+				callback: () => {
+					return Boolean(this.getVariableValue('canGoBackToArrangement'))
 				},
 			},
 
