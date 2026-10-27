@@ -19,6 +19,8 @@ export const variables: CompanionVariableDefinitions = {
 	currentMeasureOrPositionBeats: {
 		name: 'Beats of Current Measure if a Measure Track Exists, Otherwise Beats of Human Position',
 	},
+	metronomeBeat: { name: 'Current Metronome Beat' },
+	metronomeBeatsInBar: { name: 'Number of Beats in the Current Metronome Bar' },
 	tempo: { name: 'Current Tempo' },
 	isPlaying: { name: 'Is Playing' },
 	isRecording: { name: 'Is Recording' },

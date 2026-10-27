@@ -3,6 +3,9 @@ export const SECTION_PRESET_COUNT = 48
 export const RELATIVE_SECTION_PRESETS_COUNT = 8
 export const RELATIVE_SONG_PRESETS_COUNT = 8
 
+/** How long the beat flash feedback stays active after each beat */
+export const BEAT_FLASH_DURATION_MS = 100
+
 export const BOOLEAN_SETTINGS = [
 	{ id: 'ableNet', label: 'AbleNet' },
 	{ id: 'ableNetDriftCorrection', label: 'Drift Correction' },

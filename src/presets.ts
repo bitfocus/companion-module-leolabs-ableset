@@ -36,6 +36,7 @@ import {
 	STOP_ICON_GREEN,
 } from './icons.js'
 import {
+	COLOR_AMBER_600,
 	COLOR_BLACK,
 	COLOR_DARK_GRAY,
 	COLOR_GRAY,
@@ -733,35 +734,60 @@ const playbackPresets: CompanionPresetDefinitions = {
 	},
 }
 
-const visualMetronomePresets: CompanionPresetDefinitions = Object.fromEntries(
-	makeRange(16).map((i) => [
-		`beat${i + 1}`,
-		{
-			name: `Beat ${i + 1}`,
-			type: 'simple',
-			style: {
-				...defaultStyle,
-				size: 'auto',
-				color: COLOR_DARK_GRAY,
-				text: `${i + 1}`,
-			},
-			previewStyle: { ...defaultStyle, size: 'auto', text: `${i + 1}` },
-			steps: [],
-			feedbacks: [
-				{
-					feedbackId: Feedback.BeatIsInBar,
-					options: { beat: i + 1 },
-					style: { color: COLOR_WHITE },
-				},
-				{
-					feedbackId: Feedback.IsBeat,
-					options: { beat: i + 1 },
-					style: { bgcolor: COLOR_GREEN_500 },
-				},
-			],
+const visualMetronomePresets: CompanionPresetDefinitions = {
+	beatFlash: {
+		name: 'Beat Flash',
+		type: 'simple',
+		style: {
+			...defaultStyle,
+			size: 'auto',
+			text: '$(AbleSet:metronomeBeat)',
 		},
-	]),
-)
+		previewStyle: { ...defaultStyle, text: 'Beat\nFlash' },
+		steps: [],
+		feedbacks: [
+			{
+				feedbackId: Feedback.BeatFlash,
+				options: { beats: 'other' },
+				style: { bgcolor: COLOR_GREEN_500 },
+			},
+			{
+				feedbackId: Feedback.BeatFlash,
+				options: { beats: 'downbeat' },
+				style: { bgcolor: COLOR_AMBER_600 },
+			},
+		],
+	},
+	...Object.fromEntries(
+		makeRange(16).map((i) => [
+			`beat${i + 1}`,
+			{
+				name: `Beat ${i + 1}`,
+				type: 'simple',
+				style: {
+					...defaultStyle,
+					size: 'auto',
+					color: COLOR_DARK_GRAY,
+					text: `${i + 1}`,
+				},
+				previewStyle: { ...defaultStyle, size: 'auto', text: `${i + 1}` },
+				steps: [],
+				feedbacks: [
+					{
+						feedbackId: Feedback.BeatIsInBar,
+						options: { beat: i + 1 },
+						style: { color: COLOR_WHITE },
+					},
+					{
+						feedbackId: Feedback.IsBeat,
+						options: { beat: i + 1 },
+						style: { bgcolor: COLOR_GREEN_500 },
+					},
+				],
+			},
+		]),
+	),
+}
 
 const booleanSettingsPresets: CompanionPresetDefinitions = Object.fromEntries(
 	BOOLEAN_SETTINGS.map((s) => [

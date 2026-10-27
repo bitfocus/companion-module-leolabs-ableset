@@ -4,6 +4,7 @@ import { Client, Server } from 'node-osc'
 import shortUuid from 'short-uuid'
 
 import {
+	BEAT_FLASH_DURATION_MS,
 	BOOLEAN_SETTINGS,
 	COUNT_IN_DURATIONS,
 	JUMP_MODES,
@@ -38,6 +39,7 @@ const NOISY_ADDRESSES = new Set([
 	'/global/humanPosition',
 	'/global/beatsPosition',
 	'/global/currentMeasure',
+	'/global/metronome',
 	'/global/measureOrPosition',
 	'/setlist/remainingTimeInSong',
 	'/setlist/remainingTimeInSet',
@@ -78,6 +80,12 @@ export default class ModuleInstance extends InstanceBase {
 
 	soloedTrackGroups = new Set<string>()
 	mutedTrackGroups = new Set<string>()
+
+	/** Whether AbleSet sends `/global/metronome`; if not, beats are derived from the playhead position */
+	hasMetronome = false
+	beatFlashActive = false
+	beatFlashTimeout?: NodeJS.Timeout
+	lastFallbackPosition?: string
 
 	async init(config: Config): Promise<void> {
 		this.log('info', 'Initializing...')
@@ -306,11 +314,53 @@ export default class ModuleInstance extends InstanceBase {
 	}, 20)
 
 	updateMeasureOrPosition = (): void => {
+		const position = this.getVariableValue('currentMeasure') || this.getVariableValue('humanPosition')
+		const beats = this.getVariableValue('currentMeasureBeats') || this.getVariableValue('humanPositionBeats')
+
 		this.setVariableValues({
-			currentMeasureOrPosition: this.getVariableValue('currentMeasure') || this.getVariableValue('humanPosition'),
-			currentMeasureOrPositionBeats:
-				this.getVariableValue('currentMeasureBeats') || this.getVariableValue('humanPositionBeats'),
+			currentMeasureOrPosition: position,
+			currentMeasureOrPositionBeats: beats,
 		})
+
+		if (!this.hasMetronome) {
+			this.setVariableValues({
+				metronomeBeat: beats,
+				metronomeBeatsInBar: this.getFallbackBeatsInBar(),
+			})
+
+			// Compare the full bars.beats position so paired humanPosition/currentMeasure messages only flash once
+			const positionString = String(position)
+			if (positionString !== this.lastFallbackPosition) {
+				this.lastFallbackPosition = positionString
+				this.triggerBeatFlash()
+			}
+		}
+	}
+
+	getFallbackBeatsInBar = (): number =>
+		Number(this.getVariableValue('currentMeasureTotalBeats') || this.getVariableValue('timeSignatureNumerator'))
+
+	getCurrentBeat = (): number =>
+		Number(
+			this.hasMetronome
+				? this.getVariableValue('metronomeBeat')
+				: this.getVariableValue('currentMeasureBeats') || this.getVariableValue('humanPositionBeats'),
+		)
+
+	getBeatsInBar = (): number =>
+		this.hasMetronome ? Number(this.getVariableValue('metronomeBeatsInBar')) : this.getFallbackBeatsInBar()
+
+	triggerBeatFlash = (): void => {
+		if (!this.getVariableValue('isPlaying')) return
+
+		this.beatFlashActive = true
+		this.checkFeedbacks(Feedback.BeatFlash)
+
+		clearTimeout(this.beatFlashTimeout)
+		this.beatFlashTimeout = setTimeout(() => {
+			this.beatFlashActive = false
+			this.checkFeedbacks(Feedback.BeatFlash)
+		}, BEAT_FLASH_DURATION_MS)
 	}
 
 	initOscListeners(server: Server): void {
@@ -364,12 +414,26 @@ export default class ModuleInstance extends InstanceBase {
 			this.checkFeedbacks(Feedback.IsBeat, Feedback.BeatIsInBar)
 			this.updateMeasureOrPosition()
 		})
+		server.on('/global/metronome', ([, beat, total]) => {
+			this.hasMetronome = true
+			this.setVariableValues({
+				metronomeBeat: Number(beat ?? 0),
+				metronomeBeatsInBar: Number(total ?? 0),
+			})
+			this.checkFeedbacks(Feedback.IsBeat, Feedback.BeatIsInBar)
+			this.triggerBeatFlash()
+		})
 		server.on('/global/tempo', ([, tempo]) => {
 			this.setVariableValues({ tempo: Number(tempo) })
 		})
 		server.on('/global/isPlaying', ([, isPlaying]) => {
 			this.setVariableValues({ isPlaying: Boolean(isPlaying) })
 			this.debouncedCheckFeedbacks(Feedback.IsPlaying)
+			if (!isPlaying) {
+				clearTimeout(this.beatFlashTimeout)
+				this.beatFlashActive = false
+				this.checkFeedbacks(Feedback.BeatFlash)
+			}
 		})
 		server.on('/global/isRecording', ([, isRecording]) => {
 			this.setVariableValues({ isRecording: Boolean(isRecording) })
@@ -381,6 +445,9 @@ export default class ModuleInstance extends InstanceBase {
 				timeSignatureNumerator: Number(numerator),
 				timeSignatureDenominator: Number(denominator),
 			})
+			if (!this.hasMetronome) {
+				this.setVariableValues({ metronomeBeatsInBar: this.getFallbackBeatsInBar() })
+			}
 			this.debouncedCheckFeedbacks(Feedback.BeatIsInBar)
 		})
 		server.on('/global/isSyncingPlayback', ([, isSyncingPlayback]) => {
@@ -664,6 +731,7 @@ export default class ModuleInstance extends InstanceBase {
 	// When module gets deleted
 	async destroy(): Promise<void> {
 		this.log('debug', 'destroying module...')
+		clearTimeout(this.beatFlashTimeout)
 		await Promise.all(this.oscConnections.map(async (c) => c.close()))
 		this.log('debug', 'module destroyed')
 	}
@@ -1245,8 +1313,7 @@ export default class ModuleInstance extends InstanceBase {
 				name: 'Current Beat Equals',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: ({ options }) => {
-					const beat = this.getVariableValue('currentMeasureBeats') || this.getVariableValue('humanPositionBeats')
-					return beat === Number(options.beat)
+					return this.getCurrentBeat() === Number(options.beat)
 				},
 				options: [
 					{
@@ -1266,10 +1333,7 @@ export default class ModuleInstance extends InstanceBase {
 				name: 'Beat is in Bar',
 				defaultStyle: { bgcolor: COLOR_GREEN_500 },
 				callback: ({ options }) => {
-					return (
-						Number(options.beat) <=
-						Number(this.getVariableValue('currentMeasureTotalBeats') || this.getVariableValue('timeSignatureNumerator'))
-					)
+					return Number(options.beat) <= this.getBeatsInBar()
 				},
 				options: [
 					{
@@ -1280,6 +1344,33 @@ export default class ModuleInstance extends InstanceBase {
 						max: 16,
 						step: 1,
 						default: 1,
+					},
+				],
+			},
+
+			[Feedback.BeatFlash]: {
+				type: 'boolean',
+				name: 'Beat Flash',
+				description: 'Briefly active on every beat while playing',
+				defaultStyle: { bgcolor: COLOR_GREEN_500 },
+				callback: ({ options }) => {
+					if (!this.beatFlashActive) return false
+					const isDownbeat = this.getCurrentBeat() === 1
+					if (options.beats === 'downbeat') return isDownbeat
+					if (options.beats === 'other') return !isDownbeat
+					return true
+				},
+				options: [
+					{
+						id: 'beats',
+						label: 'Beats',
+						type: 'dropdown',
+						default: 'all',
+						choices: [
+							{ id: 'all', label: 'All Beats' },
+							{ id: 'downbeat', label: 'Downbeat Only' },
+							{ id: 'other', label: 'All Except Downbeat' },
+						],
 					},
 				],
 			},

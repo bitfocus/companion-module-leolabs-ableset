@@ -4,6 +4,7 @@ export enum Feedback {
 	IsRecording = 'isRecording',
 	IsBeat = 'isBeat',
 	BeatIsInBar = 'beatIsInBar',
+	BeatFlash = 'beatFlash',
 	IsInLoop = 'isInLoop',
 	IsInActiveLoop = 'isInActiveLoop',
 	IsCurrentSong = 'isCurrentSong',
